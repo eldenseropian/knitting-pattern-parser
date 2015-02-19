@@ -1,6 +1,7 @@
 import unittest
 import pattern_tree
 import parser
+import annotation
 
 class TestIllegalInitialization(unittest.TestCase):
 
@@ -16,7 +17,7 @@ class TestIllegalInitialization(unittest.TestCase):
 class TestLegalInitialization(unittest.TestCase):
 
     def test(self):
-        self.assertEqual(parser.parse('test'), pattern_tree.PatternTree([pattern_tree.Section([pattern_tree.Annotation('test')])]))
+        self.assertEqual(parser.parse('test'), pattern_tree.PatternTree([pattern_tree.Section([annotation.Annotation('test')])]))
 
 if __name__ == '__main__':
     unittest.main()

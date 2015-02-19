@@ -1,11 +1,13 @@
-import pattern_tree
-import os
+from pattern_tree import *
+from section import *
+from row import *
+from annotation import *
 
 def parse(pattern):
     pattern = pattern.splitlines()
-    lines = [pattern_tree.Annotation(line) for line in pattern if line]
-    section = pattern_tree.Section(lines)
-    pattern = pattern_tree.PatternTree([section])
+    lines = [Annotation(line) for line in pattern if line]
+    pattern_section = Section(lines)
+    pattern = PatternTree([pattern_section])
     return pattern
 
 def unroll():
