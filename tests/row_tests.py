@@ -1,9 +1,15 @@
+import os
+import sys
 import unittest
-import parser
-from pattern_tree import *
+
+sys.path.append(os.path.join('..', 'classes'))
+from pattern import *
 from section import *
 from row import *
 from annotation import *
+
+sys.path.append(os.path.join('..', ''))
+import knitparser
 
 class TestIllegalInitialization(unittest.TestCase):
     def test_initialize_empty_list(self):
@@ -22,29 +28,29 @@ class TestRowParsing(unittest.TestCase):
 
     def test_no_rows(self):
         pattern = 'Test Pattern\nBlah blah this is a pattern.\n\nWoo more pattern.'
-        tree = PatternTree([
+        tree = Pattern([
             Section([
                 Annotation('Test Pattern'),
                 Annotation('Blah blah this is a pattern.'),
                 Annotation('Woo more pattern.')
             ])
         ])
-        self.assertEqual(tree, parser.parse(pattern))
+        self.assertEqual(tree, knitparser.parse(pattern))
 
     def test_one_row(self):
         pattern = 'Test Pattern\nBlah blah this is a pattern.\n1. Ooh here is a row!'
-        tree = PatternTree([
+        tree = Pattern([
             Section([
                 Annotation('Test Pattern'),
                 Annotation('Blah blah this is a pattern.'),
                 Row([Annotation('Ooh here is a row!')], 1),
             ])
         ])
-        self.assertEqual(tree, parser.parse(pattern))
+        self.assertEqual(tree, knitparser.parse(pattern))
 
     def test_multiple_rows(self):
         pattern = 'Test Pattern\nBlah blah this is a pattern.\n1. Ooh here is a row!\n2. Wow, another one!'
-        tree = PatternTree([
+        tree = Pattern([
             Section([
                 Annotation('Test Pattern'),
                 Annotation('Blah blah this is a pattern.'),
@@ -52,7 +58,7 @@ class TestRowParsing(unittest.TestCase):
                 Row([Annotation('Wow, another one!')], 2)
             ])
         ])
-        self.assertEqual(tree, parser.parse(pattern))
+        self.assertEqual(tree, knitparser.parse(pattern))
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,6 +1,6 @@
 from section import *
 
-class PatternTree:
+class Pattern:
     def __init__(self, sections):
         if type(sections) is not list:
             raise Exception('Patterns must be a list.')
@@ -15,7 +15,7 @@ class PatternTree:
         return '<pattern>' + '\n'.join([section.__str__() for section in self.sections]) + '</pattern>'
 
     def __eq__(self, other):
-        if other.__class__ is not PatternTree:
+        if other.__class__ is not Pattern:
             return False
         if len(self.sections) != len(other.sections):
             return False

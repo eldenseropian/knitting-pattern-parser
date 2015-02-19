@@ -1,7 +1,10 @@
+import os
 import re
+import sys
 
+sys.path.append(os.path.join('.', 'classes'))
 from annotation import *
-from pattern_tree import *
+from pattern import *
 from row import *
 from section import *
 
@@ -20,7 +23,7 @@ def parse(pattern):
         elif line:
             lines.append(Annotation(line))
     pattern_section = Section(lines)
-    pattern = PatternTree([pattern_section])
+    pattern = Pattern([pattern_section])
     return pattern
 
 def unroll():
