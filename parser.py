@@ -1,11 +1,24 @@
-from pattern_tree import *
-from section import *
-from row import *
+import re
+
 from annotation import *
+from pattern_tree import *
+from row import *
+from section import *
+
+ROW_REGEX = re.compile('\d+\.')
 
 def parse(pattern):
     pattern = pattern.splitlines()
-    lines = [Annotation(line) for line in pattern if line]
+    lines = []
+    for line in pattern:
+        match = re.match(ROW_REGEX, line)
+        if match:
+            start, length = match.span()
+            number = int(line[start : start + length - 1])
+            text = line[start + length + 1 :]
+            lines.append(Row([Annotation(text)], number))
+        elif line:
+            lines.append(Annotation(line))
     pattern_section = Section(lines)
     pattern = PatternTree([pattern_section])
     return pattern

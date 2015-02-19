@@ -4,14 +4,14 @@ import parser
 
 class TestIllegalInitialization(unittest.TestCase):
 
-    def test_initialize_empty(self):
-        self.assertRaises(TypeError, pattern_tree.PatternTree)
-
     def test_initialize_with_non_list(self):
         self.assertRaises(Exception, pattern_tree.PatternTree, 2)
 
     def test_initialize_with_list_of_non_rows_or_annotations(self):
         self.assertRaises(Exception, pattern_tree.PatternTree, [1,2,3])
+
+    def test_initialize_with_empty_list(self):
+        self.assertRaises(Exception, pattern_tree.PatternTree, [])
 
 class TestLegalInitialization(unittest.TestCase):
 
