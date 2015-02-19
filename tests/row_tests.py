@@ -26,6 +26,16 @@ class TestIllegalInitialization(unittest.TestCase):
 
 class TestRowParsing(unittest.TestCase):
 
+    def setUp(self):
+        self.tree = Pattern([
+            Section([
+                Annotation('Test Pattern'),
+                Annotation('Blah blah this is a pattern.'),
+                Row([Annotation('Ooh here is a row!')], 1),
+                Row([Annotation('Wow, another one!')], 2)
+            ])
+        ])
+
     def test_no_rows(self):
         pattern = 'Test Pattern\nBlah blah this is a pattern.\n\nWoo more pattern.'
         tree = Pattern([
@@ -50,39 +60,21 @@ class TestRowParsing(unittest.TestCase):
 
     def test_multiple_rows(self):
         pattern = 'Test Pattern\nBlah blah this is a pattern.\n1. Ooh here is a row!\n2. Wow, another one!'
-        tree = Pattern([
-            Section([
-                Annotation('Test Pattern'),
-                Annotation('Blah blah this is a pattern.'),
-                Row([Annotation('Ooh here is a row!')], 1),
-                Row([Annotation('Wow, another one!')], 2)
-            ])
-        ])
-        self.assertEqual(tree, knitparser.parse(pattern))
+        self.assertEqual(self.tree, knitparser.parse(pattern))
+        pattern = 'Test Pattern\nBlah blah this is a pattern.\n1: Ooh here is a row!\n2: Wow, another one!'
+        self.assertEqual(self.tree, knitparser.parse(pattern))
 
     def test_labelled_rows(self):
         pattern = 'Test Pattern\nBlah blah this is a pattern.\nRow 1. Ooh here is a row!\nRow 2. Wow, another one!'
-        tree = Pattern([
-            Section([
-                Annotation('Test Pattern'),
-                Annotation('Blah blah this is a pattern.'),
-                Row([Annotation('Ooh here is a row!')], 1),
-                Row([Annotation('Wow, another one!')], 2)
-            ])
-        ])
-        self.assertEqual(tree, knitparser.parse(pattern))
+        self.assertEqual(self.tree, knitparser.parse(pattern))
+        pattern = 'Test Pattern\nBlah blah this is a pattern.\nRow 1: Ooh here is a row!\nRow 2: Wow, another one!'
+        self.assertEqual(self.tree, knitparser.parse(pattern))
 
     def test_labelled_rounds(self):
         pattern = 'Test Pattern\nBlah blah this is a pattern.\nRound 1. Ooh here is a row!\nRound 2. Wow, another one!'
-        tree = Pattern([
-            Section([
-                Annotation('Test Pattern'),
-                Annotation('Blah blah this is a pattern.'),
-                Row([Annotation('Ooh here is a row!')], 1),
-                Row([Annotation('Wow, another one!')], 2)
-            ])
-        ])
-        self.assertEqual(tree, knitparser.parse(pattern))
+        self.assertEqual(self.tree, knitparser.parse(pattern))
+        pattern = 'Test Pattern\nBlah blah this is a pattern.\nRound 1: Ooh here is a row!\nRound 2: Wow, another one!'
+        self.assertEqual(self.tree, knitparser.parse(pattern))
 
 if __name__ == '__main__':
     unittest.main()
