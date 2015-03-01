@@ -24,7 +24,8 @@ class TestIllegalInitialization(unittest.TestCase):
 class TestLegalInitialization(unittest.TestCase):
 
     def test(self):
-        self.assertEqual(knitparser.parse('test'), pattern.Pattern([pattern.Section([annotation.Annotation('test')])]))
+        self.assertEqual(knitparser.parse('Test Pattern\ntest'),
+            pattern.Pattern('Test Pattern', [pattern.Section([annotation.Annotation('test')])]))
 
 if __name__ == '__main__':
     unittest.main()

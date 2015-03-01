@@ -13,7 +13,8 @@ ROW_REGEX = re.compile('(Row\s|Round\s)?\d+[\.:]')
 def parse(pattern):
     pattern = pattern.splitlines()
     lines = []
-    for line in pattern:
+    title = pattern[0]
+    for line in pattern[1:]:
         match = re.match(ROW_REGEX, line)
         if match:
             start, length = match.span()
@@ -28,7 +29,8 @@ def parse(pattern):
         elif line:
             lines.append(Annotation(line))
     pattern_section = Section(lines)
-    pattern = Pattern([pattern_section])
+    pattern = Pattern(title, [pattern_section])
+    # print pattern
     return pattern
 
 def unroll():
@@ -39,6 +41,8 @@ def expand_reference():
 
 if __name__ == '__main__':
     pat = open('../scarf-beginner.txt', 'r')
+    # pat = open('../scarf-intermediate.txt', 'r')
+    # pat = open('../scarf-advanced.txt', 'r')
     pat_lines = pat.read()
     pat.close()
     parse(pat_lines)

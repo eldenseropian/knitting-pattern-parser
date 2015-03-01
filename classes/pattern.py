@@ -1,7 +1,9 @@
 from section import *
 
 class Pattern:
-    def __init__(self, sections):
+    def __init__(self, title, sections):
+        if type(title) is not str:
+            raise Exception('Title must be a string.')
         if type(sections) is not list:
             raise Exception('Patterns must be a list.')
         if len(sections) == 0:
@@ -9,10 +11,11 @@ class Pattern:
         for section in sections:
             if section.__class__ is not Section:
                 raise Exception('Each component of a pattern must be a Section.')
+        self.title = title
         self.sections = sections
     
     def __str__(self):
-        return '<pattern>' + '\n'.join([section.__str__() for section in self.sections]) + '</pattern>'
+        return '<pattern>\n<title>' + self.title + '</title>\n' + '\n'.join([section.__str__() for section in self.sections]) + '</pattern>'
 
     def __eq__(self, other):
         if other.__class__ is not Pattern:

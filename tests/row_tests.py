@@ -27,9 +27,8 @@ class TestIllegalInitialization(unittest.TestCase):
 class TestRowParsing(unittest.TestCase):
 
     def setUp(self):
-        self.tree = Pattern([
+        self.tree = Pattern('Test Pattern', [
             Section([
-                Annotation('Test Pattern'),
                 Annotation('Blah blah this is a pattern.'),
                 Row([Annotation('Ooh here is a row!')], 1),
                 Row([Annotation('Wow, another one!')], 2)
@@ -38,9 +37,8 @@ class TestRowParsing(unittest.TestCase):
 
     def test_no_rows(self):
         pattern = 'Test Pattern\nBlah blah this is a pattern.\n\nWoo more pattern.'
-        tree = Pattern([
+        tree = Pattern('Test Pattern', [
             Section([
-                Annotation('Test Pattern'),
                 Annotation('Blah blah this is a pattern.'),
                 Annotation('Woo more pattern.')
             ])
@@ -49,9 +47,8 @@ class TestRowParsing(unittest.TestCase):
 
     def test_one_row(self):
         pattern = 'Test Pattern\nBlah blah this is a pattern.\n1. Ooh here is a row!'
-        tree = Pattern([
+        tree = Pattern('Test Pattern', [
             Section([
-                Annotation('Test Pattern'),
                 Annotation('Blah blah this is a pattern.'),
                 Row([Annotation('Ooh here is a row!')], 1),
             ])

@@ -2,7 +2,9 @@ from row import *
 from annotation import *
 
 class Section:
-    def __init__(self, components):
+    def __init__(self, components, title=''):
+        if type(title) is not str:
+            raise Exception('Title must be a string.')
         if type(components) is not list:
             raise Exception('Patterns must be a list.')
         if len(components) == 0:
@@ -10,6 +12,7 @@ class Section:
         for component in components:
             if component.__class__ is not Row and component.__class__ is not Annotation:
                 raise Exception('Each component of a Section must be a Row or Annotation.')
+        self.title = title
         self.components = components
     
     def __str__(self):
