@@ -8,7 +8,7 @@ from pattern import *
 from row import *
 from section import *
 
-ROW_REGEX = re.compile('(Row\s|Round\s)?\d+[\.:]')
+ROW_REGEX = re.compile('(Row\s|Round\s)?\d+[\.:]?')
 
 def parse(pattern):
     pattern = pattern.splitlines()
@@ -18,11 +18,13 @@ def parse(pattern):
         match = re.match(ROW_REGEX, line)
         if match:
             start, length = match.span()
-            number = line[start : start + length - 1]
+            number = line[start : start + length]
             if number.startswith('Row'):
                 number = number[3:].strip()
             if number.startswith('Round'):
                 number = number[5:].strip()
+            if number.endswith('.') or number.endswith(':'):
+                number = number[:-1]
             number = int(number)
             text = line[start + length + 1 :]
             lines.append(Row([Annotation(text)], number))

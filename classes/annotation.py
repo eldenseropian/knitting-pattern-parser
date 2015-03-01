@@ -1,5 +1,6 @@
 class Annotation:
     def __init__(self, text):
+        text = text.strip()
         if not text:
             raise Exception('Empty Annotation')
         self.text = text
