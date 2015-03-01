@@ -34,7 +34,7 @@ def parse(pattern):
             lines.append(Annotation(line))
     pattern_section = Section(lines)
     pattern = Pattern(title, [pattern_section])
-    print pattern
+    # print pattern
     return pattern
 
 def unroll():
@@ -44,9 +44,9 @@ def expand_reference():
     pass
 
 if __name__ == '__main__':
-    pat = open('../scarf-beginner.txt', 'r')
-    # pat = open('../scarf-intermediate.txt', 'r')
-    # pat = open('../scarf-advanced.txt', 'r')
+    pat = open('tests/test_files/scarf-beginner.txt', 'r')
+    # pat = open('tests/test_files/scarf-intermediate.txt', 'r')
+    # pat = open('tests/test_files/scarf-advanced.txt', 'r')
     pat_lines = pat.read()
     pat.close()
     parse(pat_lines)
