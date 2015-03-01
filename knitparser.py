@@ -8,7 +8,7 @@ from pattern import *
 from row import *
 from section import *
 
-LABEL_REGEX = '(Row\s|Round\s)'
+LABEL_REGEX = '(Row(s)?\s|Round(s)?\s)'
 SIDE_REGEX = '(\s\(WS\)|\s\(RS\))?'
 NUMBER_REGEX = '\d+'
 END_REGEX = '[\.:]?'
@@ -19,23 +19,30 @@ def parse(pattern):
     lines = []
     title = pattern[0]
     for line in pattern[1:]:
-        match = re.match(ROW_REGEX, line)
-        if match:
-            start, length = match.span()
-            header = line[start : start + length]
-            header = header.replace('.', '')
-            header = header.replace(':', '')
-            header = header.replace('Row', '')
-            header = header.replace('Round', '')
-            header = header.split()
-            text = line[start + length + 1 :]
-            lines.append(Row([Annotation(text)], int(header[0])))
-        elif line:
-            lines.append(Annotation(line))
+        if line:
+            match = re.match(ROW_REGEX, line)
+            if match:
+                lines.append(parse_row(line, match))
+            else:
+                lines.append(Annotation(line))
+
     pattern_section = Section(lines)
     pattern = Pattern(title, [pattern_section])
-    # print pattern
+    print pattern
     return pattern
+
+def parse_row(line, match):
+    start, length = match.span()
+    header = line[start : start + length]
+    header = header.replace('.', '')
+    header = header.replace(':', '')
+    header = header.replace('Rows', '')
+    header = header.replace('Row', '')
+    header = header.replace('Rounds', '')
+    header = header.replace('Round', '')
+    header = header.split()
+    text = line[start + length + 1 :]
+    return Row([Annotation(text)], int(header[0]))
 
 def unroll():
     pass
@@ -44,8 +51,8 @@ def expand_reference():
     pass
 
 if __name__ == '__main__':
-    pat = open('tests/test_files/scarf-beginner.txt', 'r')
-    # pat = open('tests/test_files/scarf-intermediate.txt', 'r')
+    # pat = open('tests/test_files/scarf-beginner.txt', 'r')
+    pat = open('tests/test_files/scarf-intermediate.txt', 'r')
     # pat = open('tests/test_files/scarf-advanced.txt', 'r')
     pat_lines = pat.read()
     pat.close()
