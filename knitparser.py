@@ -8,7 +8,11 @@ from pattern import *
 from row import *
 from section import *
 
-ROW_REGEX = re.compile('(Row\s|Round\s)?\d+[\.:]?')
+LABEL_REGEX = '(Row\s|Round\s)'
+SIDE_REGEX = '(\s\(WS\)|\s\(RS\))?'
+NUMBER_REGEX = '\d+'
+END_REGEX = '[\.:]?'
+ROW_REGEX = re.compile(LABEL_REGEX + NUMBER_REGEX + SIDE_REGEX + END_REGEX)
 
 def parse(pattern):
     pattern = pattern.splitlines()
@@ -18,21 +22,19 @@ def parse(pattern):
         match = re.match(ROW_REGEX, line)
         if match:
             start, length = match.span()
-            number = line[start : start + length]
-            if number.startswith('Row'):
-                number = number[3:].strip()
-            if number.startswith('Round'):
-                number = number[5:].strip()
-            if number.endswith('.') or number.endswith(':'):
-                number = number[:-1]
-            number = int(number)
+            header = line[start : start + length]
+            header = header.replace('.', '')
+            header = header.replace(':', '')
+            header = header.replace('Row', '')
+            header = header.replace('Round', '')
+            header = header.split()
             text = line[start + length + 1 :]
-            lines.append(Row([Annotation(text)], number))
+            lines.append(Row([Annotation(text)], int(header[0])))
         elif line:
             lines.append(Annotation(line))
     pattern_section = Section(lines)
     pattern = Pattern(title, [pattern_section])
-    # print pattern
+    print pattern
     return pattern
 
 def unroll():

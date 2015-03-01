@@ -46,7 +46,7 @@ class TestRowParsing(unittest.TestCase):
         self.assertEqual(tree, knitparser.parse(pattern))
 
     def test_one_row(self):
-        pattern = 'Test Pattern\nBlah blah this is a pattern.\n1. Ooh here is a row!'
+        pattern = 'Test Pattern\nBlah blah this is a pattern.\nRow 1. Ooh here is a row!'
         tree = Pattern('Test Pattern', [
             Section([
                 Annotation('Blah blah this is a pattern.'),
@@ -54,12 +54,6 @@ class TestRowParsing(unittest.TestCase):
             ])
         ])
         self.assertEqual(tree, knitparser.parse(pattern))
-
-    def test_multiple_rows(self):
-        pattern = 'Test Pattern\nBlah blah this is a pattern.\n1. Ooh here is a row!\n2. Wow, another one!'
-        self.assertEqual(self.tree, knitparser.parse(pattern))
-        pattern = 'Test Pattern\nBlah blah this is a pattern.\n1: Ooh here is a row!\n2: Wow, another one!'
-        self.assertEqual(self.tree, knitparser.parse(pattern))
 
     def test_labelled_rows(self):
         pattern = 'Test Pattern\nBlah blah this is a pattern.\nRow 1. Ooh here is a row!\nRow 2. Wow, another one!'
