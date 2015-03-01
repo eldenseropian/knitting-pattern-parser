@@ -34,12 +34,8 @@ def parse(pattern):
 def parse_row(line, match):
     start, length = match.span()
     header = line[start : start + length]
-    header = header.replace('.', '')
-    header = header.replace(':', '')
-    header = header.replace('Rows', '')
-    header = header.replace('Row', '')
-    header = header.replace('Rounds', '')
-    header = header.replace('Round', '')
+    header = re.sub(LABEL_REGEX, '', header)
+    header = re.sub(END_REGEX, '', header)
     header = header.split()
     text = line[start + length + 1 :]
     return Row([Annotation(text)], int(header[0]))
