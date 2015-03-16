@@ -27,7 +27,7 @@ class Repeat:
     def __str__(self):
         """Return an XML representation of the repeat."""
 
-        return '<repeat times="' + str(self.times) + '">' + '\n'.join([component.__str__() for component in self.components]) + '</repeat>'
+        return '<repeat times="' + str(self.times) + '">\n' + '\n'.join([component.__str__() for component in self.components]) + '\n</repeat>'
 
     def __eq__(self, other):
         """Return whether two repeats have the same properties."""

@@ -34,7 +34,7 @@ def parse(pattern):
 
     pattern_section = Section(components)
     pattern = Pattern(title, [pattern_section])
-    # print pattern
+    print pattern
     return pattern
 
 def parse_row(line, match):
@@ -52,6 +52,7 @@ def parse_repeat(line, match):
     nums_after = find_all_nums(line[start + length :])
     if len(nums_before) == len(nums_after):
         rows = [Row(None, nums_before[i], nums_after[i]) for i in range(len(nums_before))]
+        # TODO: arbitrary number of times
         return Repeat(rows, 1)
     # TODO: figure out other cases
     return Repeat([Annotation('a')], 1)

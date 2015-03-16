@@ -33,9 +33,12 @@ class Row:
         """Return an XML representation of the row."""
 
         row_str = '<row number="' + str(self.number)
-        if self.ref:
-            row_str += '" ref="' + self.ref
-        row_str += '">' + '\n'.join([component.__str__() for component in self.components]) + '</row>'
+        if self.ref is not None:
+            row_str += '" ref="' + str(self.ref)
+        row_str += '">'
+        if self.components is not None:
+            row_str += '\n'.join([component.__str__() for component in self.components])
+        row_str += '</row>'
         return row_str
 
     def __eq__(self, other):
