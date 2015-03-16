@@ -12,16 +12,18 @@ class Row:
         """
 
         if type(components) is not list:
-            raise Exception('Components must be a list.')
-        if len(components) == 0:
-            raise Exception('Components must not be empty.')
+            if ref is None or components is not None:
+                raise Exception('Components must be a list, or None if ref is specified.')
+        if components is not None:
+            if len(components) == 0:
+                raise Exception('Components must not be empty.')
+            for component in components:
+                if component.__class__ is not Annotation:
+                    raise Exception('Each component of a Row must be an Annotation.')
         if type(number) is not int:
             raise Exception('Row numbers must be integers.')
-        if ref and type(ref) is not int:
+        if ref is not None and type(ref) is not int:
             raise Exception('Row references must be integers.')
-        for component in components:
-            if component.__class__ is not Annotation:
-                raise Exception('Each component of a Row must be an Annotation.')
 
         self.components = components
         self.number = number
@@ -43,8 +45,13 @@ class Row:
             return False
         if self.number != other.number:
             return False
-        if len(self.components) != len(other.components):
-            return False
         if self.ref != other.ref:
             return False
-        return reduce(lambda x, y: x and y, [self.components[i] == other.components[i] for i in range(len(self.components))])
+        if self.components is not None:
+            if other.components is None or len(self.components) != len(other.components):
+                return False
+            return reduce(lambda x, y: x and y, [self.components[i] == other.components[i] for i in range(len(self.components))])
+        elif other.components is not None:
+            return False
+        return True
+

@@ -1,5 +1,6 @@
-from row import *
 from annotation import *
+from repeat import *
+from row import *
 
 class Section:
     def __init__(self, components, title=''):
@@ -10,8 +11,8 @@ class Section:
         if len(components) == 0:
             raise Exception('Components must not be empty.')
         for component in components:
-            if component.__class__ is not Row and component.__class__ is not Annotation:
-                raise Exception('Each component of a Section must be a Row or Annotation.')
+            if component.__class__ not in [Row, Annotation, Repeat]:
+                raise Exception('Each component of a Section must be a Row, Annotation, or Repeat.')
         self.title = title
         self.components = components
     
