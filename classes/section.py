@@ -1,7 +1,3 @@
-from annotation import *
-from repeat import *
-from row import *
-
 class Section:
     def __init__(self, components, title=''):
         if type(title) is not str:
@@ -25,3 +21,7 @@ class Section:
         if len(self.components) != len(other.components):
             return False
         return reduce(lambda x, y: x and y, [self.components[i] == other.components[i] for i in range(len(self.components))])
+
+from annotation import *
+from repeat import *
+from row import *

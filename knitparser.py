@@ -19,22 +19,24 @@ REPEAT_REGEX = re.compile('.*Rep|Repeat')
 def parse(pattern):
     pattern = pattern.splitlines()
     components = []
+    rows = {}
     title = pattern[0]
     for line in pattern[1:]:
         if line:
             match = re.match(REPEAT_REGEX, line)
             if match:
-                components.append(parse_repeat(line, match))
+                components.append(parse_repeat(line, match, rows))
             else:
                 match = re.match(ROW_REGEX, line)
                 if match:
                     components.append(parse_row(line, match))
+                    rows[components[-1].number] = components[-1]
                 else:
                     components.append(Annotation(line))
 
     pattern_section = Section(components)
     pattern = Pattern(title, [pattern_section])
-    print pattern
+    # print pattern
     return pattern
 
 def parse_row(line, match):
@@ -44,19 +46,24 @@ def parse_row(line, match):
     header = re.sub(END_REGEX, '', header)
     header = header.split()
     text = line[start + length + 1 :]
-    return Row([Annotation(text)], int(header[0]))
+    row_num = int(header[0])
+    row = Row([Annotation(text)], row_num)
+    return row
 
-def parse_repeat(line, match):
+def parse_repeat(line, match, rows):
     start, length = match.span()
     nums_before = find_all_nums(line[start : start + length])
     nums_after = find_all_nums(line[start + length :])
-    if len(nums_before) == len(nums_after):
-        rows = [Row(None, nums_before[i], nums_after[i]) for i in range(len(nums_before))]
-        # TODO: arbitrary number of times
-        return Repeat(rows, 1)
+    if len(nums_before) == 2 and len(nums_after) == 2:
+        repeat_start, repeat_end = nums_before
+        ref_start, ref_end = nums_after
+        num_in_repeat = repeat_end - repeat_start + 1
+        num_in_ref = ref_end - ref_start + 1
+        # 0 vs 1 indexing
+        repeated_rows = [Reference(rows[i]) for i in range(ref_start, ref_end + 1)]
+        return Repeat(repeated_rows, repeat_start, num_in_repeat/num_in_ref)
     # TODO: figure out other cases
-    return Repeat([Annotation('a')], 1)
-    print line, match.span(), line[match.span()[0]:match.span()[1]], nums_before, nums_after
+    return Repeat([Annotation('a')], 1, 1)
     
 
 def unroll():
