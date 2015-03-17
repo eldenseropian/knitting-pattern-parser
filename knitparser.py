@@ -27,7 +27,11 @@ def parse(pattern):
         if line:
             match = re.match(REPEAT_REGEX, line)
             if match:
-                components.append(parse_repeat(line, match, rows))
+                repeated_rows = parse_repeat(line, match, rows)
+                if type(repeated_rows) == list:
+                    components.extend(repeated_rows)
+                else:
+                    components.append(repeated_rows)
             else:
                 match = re.match(ROW_REGEX, line)
                 if match:
@@ -63,10 +67,15 @@ def parse_repeat(line, match, rows):
         ref_start, ref_end = nums_after
         num_in_repeat = repeat_end - repeat_start + 1
         num_in_ref = ref_end - ref_start + 1
-        # 0 vs 1 indexing
-        repeated_rows = [Reference(rows[i]) for i in range(ref_start, ref_end + 1)]
+
+        times = num_in_repeat/num_in_ref
+        if times == 1:
+            parsed_rows = [Reference(rows[i], rows['count'] + i - ref_start + 1) for i in range(ref_start, ref_end + 1)]
+            rows['count'] = repeat_end
+            return parsed_rows
         rows['count'] = repeat_end
-        return Repeat(repeated_rows, repeat_start, num_in_repeat/num_in_ref)
+        parsed_rows = [Reference(rows[i]) for i in range(ref_start, ref_end + 1)]
+        return Repeat(parsed_rows, repeat_start, num_in_repeat/num_in_ref)
     elif len(nums_before) == 1 and nums_after[-1] - nums_after[0] + 1 == nums_before[0]:
         ref_start, ref_end = nums_after[0], nums_after[-1]
         repeated_rows = [Reference(rows[i]) for i in range(ref_start, ref_end + 1)]

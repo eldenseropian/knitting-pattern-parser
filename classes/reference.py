@@ -5,7 +5,7 @@ from section import *
 
 class Reference:
 
-    def __init__(self, reference):
+    def __init__(self, reference, number=None):
         """Create a new reference.
 
         Keyword arguments:
@@ -13,8 +13,11 @@ class Reference:
         """
         if reference.__class__ not in [Annotation, Repeat, Row, Section]:
             raise Exception('References must be to existing pattern classes.')
+        if number is not None and type(number) is not int:
+            raise Exception('Row numbers must be integers')
 
         self.reference = reference
+        self.number = number
 
     def __eq__(self, other):
         """Return whether two references point to the same object."""
@@ -23,4 +26,8 @@ class Reference:
 
     # TODO: figure out if there's any other types of refs beside row refs
     def __str__(self):
-        return '<row reference="' + str(self.reference.number) + '"/>'
+        row_str = '<row '
+        if self.number:
+            row_str += 'number="' + str(self.number) + '" '
+        row_str += 'reference="' + str(self.reference.number) + '"/>'
+        return row_str
