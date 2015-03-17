@@ -19,7 +19,9 @@ REPEAT_REGEX = re.compile('.*Rep|Repeat')
 def parse(pattern):
     pattern = pattern.splitlines()
     components = []
-    rows = {}
+    rows = {
+        'count': 0
+    }
     title = pattern[0]
     for line in pattern[1:]:
         if line:
@@ -29,14 +31,16 @@ def parse(pattern):
             else:
                 match = re.match(ROW_REGEX, line)
                 if match:
-                    components.append(parse_row(line, match))
-                    rows[components[-1].number] = components[-1]
+                    new_row = parse_row(line, match)
+                    components.append(new_row)
+                    rows[new_row.number] = new_row
+                    rows['count'] += 1
                 else:
                     components.append(Annotation(line))
 
     pattern_section = Section(components)
     pattern = Pattern(title, [pattern_section])
-    # print pattern
+    print pattern
     return pattern
 
 def parse_row(line, match):
@@ -61,8 +65,15 @@ def parse_repeat(line, match, rows):
         num_in_ref = ref_end - ref_start + 1
         # 0 vs 1 indexing
         repeated_rows = [Reference(rows[i]) for i in range(ref_start, ref_end + 1)]
+        rows['count'] = repeat_end
         return Repeat(repeated_rows, repeat_start, num_in_repeat/num_in_ref)
+    elif len(nums_before) == 1 and nums_after[-1] - nums_after[0] + 1 == nums_before[0]:
+        ref_start, ref_end = nums_after[0], nums_after[-1]
+        repeated_rows = [Reference(rows[i]) for i in range(ref_start, ref_end + 1)]
+        rows['count'] += nums_before[0]
+        return Repeat(repeated_rows, rows['count'] - nums_before[0] + 1, nums_before[0]/(ref_end - ref_start + 1))
     # TODO: figure out other cases
+    print 'OTHER:', line
     return Repeat([Annotation('a')], 1, 1)
     
 
