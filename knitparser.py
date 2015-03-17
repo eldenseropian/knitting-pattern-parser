@@ -15,7 +15,7 @@ NUMBER_REGEX = '\d+'
 END_REGEX = '[\.:]?'
 ROW_REGEX = re.compile(LABEL_REGEX + NUMBER_REGEX + SIDE_REGEX + END_REGEX)
 REPEAT_REGEX = re.compile('.*[rR]ep\s[rR]ows|[rR]epeat\s[rR]ows')
-EVERY_OTHER_REGEX = re.compile('.*and all')
+EVERY_OTHER_REGEX = re.compile('.*and all[.]{,15}rows')
 
 def parse(pattern):
     pattern = pattern.splitlines()
@@ -97,7 +97,6 @@ def parse_repeat(line, match, rows):
         repeated_rows = [Reference(rows[i]) for i in range(ref_start, ref_end + 1)]
         return Repeat(repeated_rows, rows['count'] - nums_before[0] + 1, times)
     # TODO: figure out other cases
-    print 'OTHER:', line
     return Repeat([Annotation(line)], rows['count'])
     
 def parse_repeat_every_other(line, match):
@@ -131,8 +130,8 @@ def find_all_nums(line):
 
 if __name__ == '__main__':
     # pat = open('tests/test_files/scarf-beginner.txt', 'r')
-    # pat = open('tests/test_files/scarf-intermediate.txt', 'r')
-    pat = open('tests/test_files/scarf-advanced.txt', 'r')
+    pat = open('tests/test_files/scarf-intermediate.txt', 'r')
+    # pat = open('tests/test_files/scarf-advanced.txt', 'r')
     pat_lines = pat.read()
     pat.close()
     # print pat_lines
