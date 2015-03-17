@@ -15,7 +15,7 @@ class Pattern:
         self.sections = sections
     
     def __str__(self):
-        return '<pattern>\n<title>' + self.title + '</title>\n' + '\n'.join([section.__str__() for section in self.sections]) + '</pattern>'
+        return '<pattern>\n<title>' + self.title + '</title>\n' + '\n'.join([section.__str__() for section in self.sections]) + '\n</pattern>'
 
     def __eq__(self, other):
         if other.__class__ is not Pattern:
