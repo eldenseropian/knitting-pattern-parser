@@ -3,7 +3,7 @@ from row import *
 
 class Repeat:
 
-    def __init__(self, components, start, times):
+    def __init__(self, components, start, times=None):
         """Create a new row.
 
         Keyword arguments:
@@ -17,8 +17,8 @@ class Repeat:
             raise Exception('Components must not be empty.')
         if type(start) is not int:
             raise Exception('Start row number must be an integer.')
-        if type(times) is not int:
-            raise Exception('Number of times to repeat must be an integer.')
+        if times is not None and type(times) is not int and type(times) is not str:
+            raise Exception('Number of times to repeat must be an integer or string.')
         for component in components:
             # TODO: nested repeats
             if component.__class__ not in [Annotation, Reference, Row]:
@@ -31,7 +31,11 @@ class Repeat:
     def __str__(self):
         """Return an XML representation of the repeat."""
 
-        return '<repeat start="' + str(self.start) + '" times="' + str(self.times) + '">\n' + '\n'.join([component.__str__() for component in self.components]) + '\n</repeat>'
+        repeat_str = '<repeat start="' + str(self.start)
+        if self.times:
+            repeat_str += '" times="' + str(self.times)
+        repeat_str += '">\n' + '\n'.join([component.__str__() for component in self.components]) + '\n</repeat>'
+        return repeat_str
 
     def __eq__(self, other):
         """Return whether two repeats have the same properties."""
