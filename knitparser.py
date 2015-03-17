@@ -62,6 +62,7 @@ def parse_repeat(line, match, rows):
     start, length = match.span()
     nums_before = find_all_nums(line[start : start + length])
     nums_after = find_all_nums(line[start + length :])
+    
     if len(nums_before) == 2 and len(nums_after) == 2:
         repeat_start, repeat_end = nums_before
         ref_start, ref_end = nums_after
@@ -69,18 +70,27 @@ def parse_repeat(line, match, rows):
         num_in_ref = ref_end - ref_start + 1
 
         times = num_in_repeat/num_in_ref
+        
         if times == 1:
             parsed_rows = [Reference(rows[i], rows['count'] + i - ref_start + 1) for i in range(ref_start, ref_end + 1)]
             rows['count'] = repeat_end
             return parsed_rows
+        
         rows['count'] = repeat_end
         parsed_rows = [Reference(rows[i]) for i in range(ref_start, ref_end + 1)]
         return Repeat(parsed_rows, repeat_start, num_in_repeat/num_in_ref)
+    
     elif len(nums_before) == 1 and nums_after[-1] - nums_after[0] + 1 == nums_before[0]:
         ref_start, ref_end = nums_after[0], nums_after[-1]
-        repeated_rows = [Reference(rows[i]) for i in range(ref_start, ref_end + 1)]
+        times = nums_before[0]/(ref_end - ref_start + 1)
+        if times == 1:
+            parsed_rows = [Reference(rows[i], rows['count'] + i - ref_start + 1) for i in range(ref_start, ref_end + 1)]
+            rows['count'] += nums_before[0]
+            return parsed_rows
+
         rows['count'] += nums_before[0]
-        return Repeat(repeated_rows, rows['count'] - nums_before[0] + 1, nums_before[0]/(ref_end - ref_start + 1))
+        repeated_rows = [Reference(rows[i]) for i in range(ref_start, ref_end + 1)]
+        return Repeat(repeated_rows, rows['count'] - nums_before[0] + 1, times)
     # TODO: figure out other cases
     print 'OTHER:', line
     return Repeat([Annotation('a')], 1, 1)
