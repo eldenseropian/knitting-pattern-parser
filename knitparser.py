@@ -16,6 +16,7 @@ END_REGEX = '[\.:]?'
 ROW_REGEX = re.compile(LABEL_REGEX + NUMBER_REGEX + SIDE_REGEX + END_REGEX)
 REPEAT_REGEX = re.compile('.*[rR]ep\s[rR]ows|[rR]epeat\s[rR]ows')
 EVERY_OTHER_REGEX = re.compile('.*and all.{,15}rows')
+IN_ROW_REPEAT_REGEX = re.compile('.*\*.*[rR]epeat from \*')
 
 def parse(pattern):
     pattern = pattern.splitlines()
@@ -26,30 +27,34 @@ def parse(pattern):
     title = pattern[0]
     for line in pattern[1:]:
         if line.strip():
-            match = re.match(EVERY_OTHER_REGEX, line)
+            match = re.match(IN_ROW_REPEAT_REGEX)
             if match:
-                components.append(parse_repeat_every_other(line, match))
+                components.append(parse_in_row_repeat(line, match))
             else:
-                match = re.match(REPEAT_REGEX, line)
+                match = re.match(EVERY_OTHER_REGEX, line)
                 if match:
-                    repeated_rows = parse_repeat(line, match, rows)
-                    if type(repeated_rows) == list:
-                        components.extend(repeated_rows)
-                    else:
-                        components.append(repeated_rows)
+                    components.append(parse_repeat_every_other(line, match))
                 else:
-                    match = re.match(ROW_REGEX, line)
+                    match = re.match(REPEAT_REGEX, line)
                     if match:
-                        new_row = parse_row(line, match)
-                        components.append(new_row)
-                        rows[new_row.number] = new_row
-                        rows['next_row'] = new_row.number + 1
+                        repeated_rows = parse_repeat(line, match, rows)
+                        if type(repeated_rows) == list:
+                            components.extend(repeated_rows)
+                        else:
+                            components.append(repeated_rows)
                     else:
-                        components.append(Annotation(line))
+                        match = re.match(ROW_REGEX, line)
+                        if match:
+                            new_row = parse_row(line, match)
+                            components.append(new_row)
+                            rows[new_row.number] = new_row
+                            rows['next_row'] = new_row.number + 1
+                        else:
+                            components.append(Annotation(line))
 
     pattern_section = Section(components)
     pattern = Pattern(title, [pattern_section])
-    print pattern
+    # print pattern
     return pattern
 
 def parse_row(line, match):
@@ -113,6 +118,23 @@ def parse_repeat_every_other(line, match):
     if 'ws' in line or 'wrong side' in line.lower():
         return Repeat([row], row.number, 'WS')
     return Repeat([Annotation(line)], row.number)
+
+def parse_in_row_repeat(line, match):
+    start, length = match.span()
+    rep_start = line.index('*')
+    row_number = find_all_nums(line[:rep_start])[0]
+    repeated_section = line[rep_start + 1 : start + length - len('repeat from *')]
+    end = line[start+length :]
+    if 'repeat' in end:
+        until = end[: end.index('repeat')].strip().strip(',')
+        if until.startswith('to'):
+            until = until[2:].strip()
+        return Row([
+            InRowRepeat([Annotation(repeated_section)], until),
+            InRowRepeat([Annotation(end[end.index('repeat') + len('repeat') :])])
+        ], row_number)
+    return Row([InRowRepeat([Annotation(repeated_section)], end)], row_number)
+
 
 def unroll():
     pass

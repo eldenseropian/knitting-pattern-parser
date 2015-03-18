@@ -1,4 +1,5 @@
 from annotation import *
+from repeat import *
 
 class Row:
 
@@ -16,8 +17,8 @@ class Row:
         if len(components) == 0:
             raise Exception('Components must not be empty.')
         for component in components:
-            if component.__class__ is not Annotation:
-                raise Exception('Each component of a Row must be an Annotation.')
+            if component.__class__ is not Annotation and component.__class__ is not InRowRepeat:
+                raise Exception('Each component of a Row must be an Annotation or InRowRepeat.')
         if type(number) is not int:
             raise Exception('Row numbers must be integers.')
 
@@ -27,7 +28,7 @@ class Row:
     def __str__(self):
         """Return an XML representation of the row."""
 
-        return '<row number="' + str(self.number) + '">' + '\n'.join([component.__str__() for component in self.components]) + '</row>'
+        return '<row number="' + str(self.number) + '">\n' + '\n'.join([component.__str__() for component in self.components]) + '\n</row>'
 
     def __eq__(self, other):
         """Return whether two rows have the same properties."""
@@ -39,3 +40,4 @@ class Row:
         if len(self.components) != len(other.components):
             return False
         return reduce(lambda x, y: x and y, [self.components[i] == other.components[i] for i in range(len(self.components))])
+
