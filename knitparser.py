@@ -120,13 +120,14 @@ def parse_repeat_every_other(line, match):
 def parse_in_row_repeat(line, match):
     start, length = match.span()
     rep_start = line.index('*')
+    beg = line[line.index(':') + 1 : line.index('*')].strip(',;:. ')
     row_number = find_all_nums(line[:rep_start])[0]
     subtract = len('rep from *')
     if 'repeat' in line.lower():
         subtract = len('repeat from *')
     repeated_section = line[rep_start + 1 : start + length - subtract].strip(',.:; ')
-    end = line[start+length :]
-    if 'rep' in end.lower():
+    end = line[start+length :].lower()
+    if 'rep' in end:
         until = end[: end.index('repeat')].strip().strip(',')
 
         if until.startswith('to'):
@@ -141,6 +142,17 @@ def parse_in_row_repeat(line, match):
             InRowRepeat([Annotation(repeated_section)], 'across'),
             Annotation(other_instructions)],
         row_number)
+    if 'to' in end:
+        until = end[end.index('to') + len('to') :].strip(' .')
+        if beg:
+            return Row([
+                Annotation(beg),
+                InRowRepeat([Annotation(repeated_section)], until),
+            ], row_number)
+        return Row([
+            InRowRepeat([Annotation(repeated_section)], until),
+        ], row_number)
+
     return Row([InRowRepeat([Annotation(repeated_section)], end)], row_number)
 
 
