@@ -28,7 +28,10 @@ def parse(pattern):
         if line.strip():
             match = re.match(IN_ROW_REPEAT_REGEX, line)
             if match:
-                components.append(parse_in_row_repeat(line, match))
+                new_row = parse_in_row_repeat(line, match)
+                components.append(new_row)
+                rows[new_row.number] = new_row
+                rows['next_row'] = new_row.number + 1
             else:
                 match = re.match(EVERY_OTHER_REGEX, line)
                 if match:
@@ -172,8 +175,8 @@ def find_all_nums(line):
 
 if __name__ == '__main__':
     # pat = open('tests/test_files/scarf-beginner.txt', 'r')
-    # pat = open('tests/test_files/scarf-intermediate.txt', 'r')
-    pat = open('tests/test_files/scarf-advanced.txt', 'r')
+    pat = open('tests/test_files/scarf-intermediate.txt', 'r')
+    # pat = open('tests/test_files/scarf-advanced.txt', 'r')
     pat_lines = pat.read()
     pat.close()
     # print pat_lines
