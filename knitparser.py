@@ -15,7 +15,7 @@ END_REGEX = '[\.:]?'
 ROW_REGEX = re.compile(LABEL_REGEX + NUMBER_REGEX + SIDE_REGEX + END_REGEX)
 REPEAT_REGEX = re.compile('.*[rR]ep\s[rR]ows|[rR]epeat\s[rR]ows')
 EVERY_OTHER_REGEX = re.compile('.*and all.{,15}rows')
-IN_ROW_REPEAT_REGEX = re.compile('.*\*.*[rR]epeat from \*')
+IN_ROW_REPEAT_REGEX = re.compile('.*\*.*[rR]ep(eat)? from \*')
 
 def parse(pattern):
     pattern = pattern.splitlines()
@@ -121,16 +121,26 @@ def parse_in_row_repeat(line, match):
     start, length = match.span()
     rep_start = line.index('*')
     row_number = find_all_nums(line[:rep_start])[0]
-    repeated_section = line[rep_start + 1 : start + length - len('repeat from *')]
+    subtract = len('rep from *')
+    if 'repeat' in line.lower():
+        subtract = len('repeat from *')
+    repeated_section = line[rep_start + 1 : start + length - subtract].strip(',.:; ')
     end = line[start+length :]
-    if 'repeat' in end:
+    if 'rep' in end.lower():
         until = end[: end.index('repeat')].strip().strip(',')
+
         if until.startswith('to'):
             until = until[2:].strip()
         return Row([
             InRowRepeat([Annotation(repeated_section)], until),
             InRowRepeat([Annotation(end[end.index('repeat') + len('repeat') :])])
         ], row_number)
+    if 'across' in end:
+        other_instructions = end[end.index('across') + len('across') :].lstrip(';:. ')
+        return Row([
+            InRowRepeat([Annotation(repeated_section)], 'across'),
+            Annotation(other_instructions)],
+        row_number)
     return Row([InRowRepeat([Annotation(repeated_section)], end)], row_number)
 
 
