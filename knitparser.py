@@ -51,6 +51,11 @@ def parse(pattern):
                             components.append(new_row)
                             rows[new_row.number] = new_row
                             rows['next_row'] = new_row.number + 1
+                        elif 'row:' in line.lower():
+                            new_row = Row([Annotation(line[line.lower().index('row:') + len('row:') :].strip())], rows['next_row'])
+                            components.append(new_row)
+                            rows[new_row.number] = new_row
+                            rows['next_row'] = new_row.number + 1
                         else:
                             components.append(Annotation(line))
 
@@ -125,6 +130,10 @@ def parse_repeat_every_other(line, match):
         return Repeat([row], row.number, 'WS')
     return Repeat([Annotation(line)], row.number)
 
+"""
+Row 5: With A, * k8, yo, sl next st purlwise, k1, rep from * twice more, k7.
+"""
+
 def parse_in_row_repeat(line, match):
     start, length = match.span()
     rep_start = line.index('*')
@@ -134,7 +143,7 @@ def parse_in_row_repeat(line, match):
     if 'repeat' in line.lower():
         subtract = len('repeat from *')
     repeated_section = line[rep_start + 1 : start + length - subtract].strip(',.:; ')
-    end = line[start+length :].lower()
+    end = line[start+length :]
     if 'rep' in end:
         until = end[: end.index('repeat')].strip().strip(',')
 
@@ -145,7 +154,7 @@ def parse_in_row_repeat(line, match):
             InRowRepeat([Annotation(end[end.index('repeat') + len('repeat') :])])
         ], row_number)
     if 'across' in end:
-        other_instructions = end[end.index('across') + len('across') :].lstrip(';:. ')
+        other_instructions = end[end.index('across') + len('across') :].lstrip(';:. ').strip(',:. ')
         return Row([
             InRowRepeat([Annotation(repeated_section)], 'across'),
             Annotation(other_instructions)],
@@ -160,7 +169,24 @@ def parse_in_row_repeat(line, match):
         return Row([
             InRowRepeat([Annotation(repeated_section)], until),
         ], row_number)
-
+    if 'more' in end:
+        until = end[: end.index('more') + len('more')].strip()
+        other_instructions = end[end.index('more') + len('more') :].lstrip(' ,').strip('.')
+        if beg:
+            return Row([
+                Annotation(beg),
+                InRowRepeat([Annotation(repeated_section)], until),
+                Annotation(other_instructions)
+            ], row_number)
+        return Row([
+            InRowRepeat([Annotation(repeated_section)], until),
+            Annotation(other_instructions)
+        ], row_number)
+    if beg:
+        return Row([
+            Annotation(beg),
+            InRowRepeat([Annotation(repeated_section)], end)
+        ], row_number)
     return Row([InRowRepeat([Annotation(repeated_section)], end)], row_number)
 
 
