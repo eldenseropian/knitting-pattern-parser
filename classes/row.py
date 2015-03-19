@@ -2,7 +2,7 @@ from pattern import is_valid_row_component
 
 class Row:
 
-    def __init__(self, components, number):
+    def __init__(self, components, number, side=None):
         """Create a new row.
 
         Keyword arguments:
@@ -20,14 +20,21 @@ class Row:
                 raise Exception('Each component of a Row must be an Annotation or InRowRepeat.')
         if type(number) is not int:
             raise Exception('Row numbers must be integers.')
+        if side is not None and side != 'RS' and side != 'WS':
+            raise Exception('Side must be RS or WS.')
 
         self.components = components
         self.number = number
+        self.side = side
 
     def __str__(self):
         """Return an XML representation of the row."""
 
-        return '<row number="' + str(self.number) + '">\n' + '\n'.join([component.__str__() for component in self.components]) + '\n</row>'
+        row_str = '<row number="' + str(self.number)
+        if self.side:
+            row_str += '" side="' + self.side
+        row_str += '">\n' + '\n'.join([component.__str__() for component in self.components]) + '\n</row>'
+        return row_str
 
     def __eq__(self, other):
         """Return whether two rows have the same properties."""

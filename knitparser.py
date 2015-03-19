@@ -66,7 +66,12 @@ def parse_row(line, match):
     header = header.split()
     text = line[start + length + 1 :]
     row_num = int(header[0])
-    row = Row([Annotation(text)], row_num)
+    side = None
+    if 'RS' in line.upper() or 'right side' in line.lower():
+        side = 'RS'
+    if 'WS' in line.upper() or 'wrong side' in line.lower():
+        side = 'WS'
+    row = Row([Annotation(text)], row_num, side)
     return row
 
 def parse_repeat(line, match, rows):
