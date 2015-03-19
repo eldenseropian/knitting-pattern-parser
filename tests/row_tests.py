@@ -4,10 +4,7 @@ import sys
 import unittest
 
 sys.path.append(os.path.join('..', 'classes'))
-from annotation import *
 from pattern import *
-from row import *
-from section import *
 
 sys.path.append(os.path.join('..', ''))
 import knitparser
@@ -55,30 +52,24 @@ class TestE2ERowParsing(unittest.TestCase):
 
     def setUp(self):
         self.tree = Pattern('Test Pattern', [
-            Section([
-                Annotation('Blah blah this is a pattern.'),
-                Row([Annotation('Ooh here is a row!')], 1),
-                Row([Annotation('Wow, another one!')], 2)
-            ])
+            Annotation('Blah blah this is a pattern.'),
+            Row([Annotation('Ooh here is a row!')], 1),
+            Row([Annotation('Wow, another one!')], 2)
         ])
 
     def test_no_rows(self):
         pattern = 'Test Pattern\nBlah blah this is a pattern.\n\nWoo more pattern.'
         tree = Pattern('Test Pattern', [
-            Section([
-                Annotation('Blah blah this is a pattern.'),
-                Annotation('Woo more pattern.')
-            ])
+            Annotation('Blah blah this is a pattern.'),
+            Annotation('Woo more pattern.')
         ])
         self.assertEqual(tree, knitparser.parse(pattern))
 
     def test_one_row(self):
         pattern = 'Test Pattern\nBlah blah this is a pattern.\nRow 1. Ooh here is a row!'
         tree = Pattern('Test Pattern', [
-            Section([
-                Annotation('Blah blah this is a pattern.'),
-                Row([Annotation('Ooh here is a row!')], 1),
-            ])
+            Annotation('Blah blah this is a pattern.'),
+            Row([Annotation('Ooh here is a row!')], 1),
         ])
         self.assertEqual(tree, knitparser.parse(pattern))
 

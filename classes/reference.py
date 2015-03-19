@@ -1,7 +1,4 @@
-from annotation import *
-from repeat import *
-from row import *
-from section import *
+from pattern import is_valid_component
 
 class Reference:
 
@@ -11,7 +8,7 @@ class Reference:
         Keyword arguments:
         reference -- the object to reference
         """
-        if reference.__class__ not in [Annotation, Repeat, Row, Section]:
+        if not is_valid_component(reference):
             raise Exception('References must be to existing pattern classes.')
         if number is not None and type(number) is not int:
             raise Exception('Row numbers must be integers')

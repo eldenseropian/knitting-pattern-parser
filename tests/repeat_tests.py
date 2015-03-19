@@ -4,13 +4,7 @@ import sys
 import unittest
 
 sys.path.append(os.path.join('..', 'classes'))
-from annotation import *
 from pattern import *
-from reference import *
-from repeat import *
-from row import *
-from section import *
-
 
 sys.path.append(os.path.join('..', ''))
 import knitparser

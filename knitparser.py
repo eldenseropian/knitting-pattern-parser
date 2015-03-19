@@ -7,7 +7,6 @@ from annotation import *
 from pattern import *
 from repeat import *
 from row import *
-from section import *
 
 LABEL_REGEX = '(Row(s)?\s|Round(s)?\s)'
 SIDE_REGEX = '(\s\(WS\)|\s\(RS\))?'
@@ -27,7 +26,7 @@ def parse(pattern):
     title = pattern[0]
     for line in pattern[1:]:
         if line.strip():
-            match = re.match(IN_ROW_REPEAT_REGEX)
+            match = re.match(IN_ROW_REPEAT_REGEX, line)
             if match:
                 components.append(parse_in_row_repeat(line, match))
             else:
@@ -52,8 +51,7 @@ def parse(pattern):
                         else:
                             components.append(Annotation(line))
 
-    pattern_section = Section(components)
-    pattern = Pattern(title, [pattern_section])
+    pattern = Pattern(title, components)
     # print pattern
     return pattern
 
@@ -151,9 +149,9 @@ def find_all_nums(line):
     return nums
 
 if __name__ == '__main__':
-    pat = open('tests/test_files/scarf-beginner.txt', 'r')
+    # pat = open('tests/test_files/scarf-beginner.txt', 'r')
     # pat = open('tests/test_files/scarf-intermediate.txt', 'r')
-    # pat = open('tests/test_files/scarf-advanced.txt', 'r')
+    pat = open('tests/test_files/scarf-advanced.txt', 'r')
     pat_lines = pat.read()
     pat.close()
     # print pat_lines

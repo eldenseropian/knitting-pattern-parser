@@ -1,5 +1,4 @@
-from annotation import *
-from repeat import *
+from pattern import is_valid_row_component
 
 class Row:
 
@@ -17,7 +16,7 @@ class Row:
         if len(components) == 0:
             raise Exception('Components must not be empty.')
         for component in components:
-            if component.__class__ is not Annotation and component.__class__ is not InRowRepeat:
+            if not is_valid_row_component(component):
                 raise Exception('Each component of a Row must be an Annotation or InRowRepeat.')
         if type(number) is not int:
             raise Exception('Row numbers must be integers.')

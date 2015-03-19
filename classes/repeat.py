@@ -1,4 +1,4 @@
-from annotation import *
+from pattern import is_valid_component
 
 class Repeat:
 
@@ -20,8 +20,7 @@ class Repeat:
         if times is not None and type(times) is not int and type(times) is not str:
             raise Exception('Number of times to repeat must be an integer or string.')
         for component in components:
-            # TODO: nested repeats
-            if component.__class__ not in [Annotation, Reference, Row]:
+            if not is_valid_component(component):
                 raise Exception('Each component of a Repeat must be an Annotation, Reference, or Row.')
 
         self.components = components
@@ -79,6 +78,3 @@ class InRowRepeat:
         if len(self.components) != len(other.components):
             return False
         return reduce(lambda x, y: x and y, [self.components[i] == other.components[i] for i in range(len(self.components))])
-
-from reference import *
-from row import *
