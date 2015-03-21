@@ -57,7 +57,7 @@ class TestInRowRepeatParsing(unittest.TestCase):
 
     def test_rep(self):
         pattern = 'Row 2: *K2tog, yo, rep from * across; end k1.'
-        tree = Row([InRowRepeat([Annotation('K2tog, yo')], 'across'), Annotation('end k1.')], 2)
+        tree = Row([InRowRepeat([Annotation('K2tog, yo')], 'across'), Annotation('end k1')], 2)
         parsed_tree = knitparser.parse_in_row_repeat(pattern, re.match(knitparser.IN_ROW_REPEAT_REGEX, pattern))
         self.assertEqual(tree, parsed_tree)
 
