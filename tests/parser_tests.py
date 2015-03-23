@@ -14,28 +14,24 @@ class TestParser(unittest.TestCase):
     """Test the parser using real patterns."""
 
     def test_beginner_pattern(self):
-        pattern_tree = Pattern('Pattern: Easy-Eyes scarf for carry-around knitting - by Alison Hyde', [
+        pattern_tree = Pattern('Pattern: Easy-Eyes scarf for carry-around knitting - by Alison Hyde')
+        pattern_tree += [
             Annotation('This is the perfect scarf for peaceful knitting. The stitch pattern is so simple, you\'ll likely memorize it even before you start knitting.'),
             Annotation('Cast on an odd number of stitches in a yarn and needle size that you like together. The sample shown here and on my website, spindyeknit.com was made with Soft Baby from Rowan. I cast on 13 stitches using size 11 (6.5 mm) needles. I made a second version in a variegated color of Suri Dream from Knit Picks that shows the versatility of this easy pattern, but unfortunately blogger ate the only photo.'),
             Annotation('Exact gauge is not important, but the fabric should be light and airy, not tight and stiff.'),
-            Repeat([Row([Annotation('Purl.')], 1)], 1, 'WS'),
+            Repeat([Row([Annotation('Purl')], 1)], 1, 'WS'),
             Row([InRowRepeat([Annotation('K2tog, yo')], 'across'), Annotation('end k1')], 2),
             Row([Annotation('K1'), InRowRepeat([Annotation('yo, ssk')], 'end of row')], 4),
             Annotation('Bind off loosely and block to open up the lace.'),
             Annotation('(Note: See this month\'s knitting lessons for a stretchy bind off and tips on blocking lace.)'),
             Annotation('Posted by Donna at 7:53 AM'),
             Annotation('Categories: Patterns')
-        ])
+        ]
 
         pattern = None
         with open('test_files/scarf-beginner.txt') as pattern_file:
             pattern = pattern_file.read()
         parsed_pattern = knitparser.parse(pattern)
- 
-        with open('tempOff', 'w') as off:
-            off.write(pattern_tree.__str__())
-        with open('tempParsed', 'w') as parsed:
-            parsed.write(parsed_pattern.__str__())
 
         self.assertEqual(pattern_tree, parsed_pattern)
 
@@ -57,7 +53,8 @@ class TestParser(unittest.TestCase):
             Annotation('sl next st purlwise, wrap yarn counterclockwise around RH needle once, p3')
         ], 16)
 
-        pattern_tree = Pattern('CHAKNA', [
+        pattern_tree = Pattern('CHAKNA')
+        pattern_tree += [
             Annotation('Skill Level:'),
             Annotation('Intermediate'),
             Annotation('Project Type:'),
@@ -103,13 +100,13 @@ class TestParser(unittest.TestCase):
             Reference(row6, 26),
             Repeat([Reference(row7), Reference(row8)], 27, 4),
             Repeat([Annotation('From here, rep Rows 11 - 34 for Pat St until piece measures approximately 70" from beg, end on Row 16 of Pat St. Rep Rows 15 and 16 once more.')], 35),
-            Reference(row11, 36),
-            Reference(row12, 37),
-            Row([Annotation('With A, knit. Using A, bind off.')], 38),
+            Reference(row11, 1),
+            Reference(row12, 2),
+            Row([Annotation('With A, knit. Using A, bind off.')], 3),
             Annotation('Finishing'),
             Annotation('Weave in all ends.'),
             Annotation('Side Edgings: With RS facing, using crochet hook and A, work in sc along each side edge of scarf.')
-        ])
+        ]
 
         with open('test_files/scarf-intermediate.txt') as pattern_file:
             pattern = pattern_file.read()
@@ -123,7 +120,7 @@ class TestParser(unittest.TestCase):
                 Annotation('[p1, k2tog, yo, p1], ssk-L-pnso-R, k5, yo, k1, yo, k3, yo, k1, yo, k2, sl 1-k2tog-psso')
             ], 'last 4 sts'),
             InRowRepeat([
-                Annotation('repeat 4st panel')
+                Annotation('4st panel')
             ])
         ], 1)
         
@@ -208,7 +205,8 @@ class TestParser(unittest.TestCase):
             Annotation('Sl1, [k3, yo] twice, k2tog, yo, k2.')
         ], 14)
 
-        pattern_tree = Pattern('Leaves and waves', [
+        pattern_tree = Pattern('Leaves and waves')
+        pattern_tree += [
             Annotation('I was thinking of fall and how we all like to return to dark colors after the brightness of summer and I wanted the shawl to be large but not heavy.'),
             Annotation('Lace-weight mohair is so light and airy; the shawl can easily be worn as a long scarf, or even a sarong.'),
             Annotation('I like the surprising asymmetry of the colors and shapes of this shawl, as it often looks different than expected. The construction is fairly simple but previous lace knitting is recommended'),
@@ -299,18 +297,12 @@ class TestParser(unittest.TestCase):
             Row([
                 Annotation('K1, OMITTING FIRST INSTANCE OF 4ST PANEL work 6 repeats of Leaves patt.')
             ], 1, 'RS'),
-            Repeat([
-                Annotation('Cont in patt as set until the 12 rows of Leaves patt have been worked twice')
-            ], 2, 24),
-            Repeat([
-                Annotation('Cont in stockinette st until panel measures same as color panel.')
-            ], 25),
+            Annotation('Cont in patt as set until the 12 rows of Leaves patt have been worked twice -- 24 rows in total.'),
+            Annotation('Cont in stockinette st until panel measures same as color panel.'),
             Annotation('156 rows worked in total.'),
             Annotation('Top Edge'),
             Annotation('Beg with k2, work across all sts of black panel in 2x2 rib, sl held sts of color panel onto working needle with black panel (so both WS are facing), work across sts of color panel in 2x2 rib to last 2 sts, p2tog. 224 sts'),
-            Repeat([
-                Annotation('Cont in rib')
-            ], 26, 3),
+            Annotation('Cont in rib for 3 rows more.'),
             Annotation('Loosely BO all sts in patt.'),
             Annotation('Bottom Edge'),
             Annotation('Carefully remove waste yarn from CO edges of both panels, and place all resulting live sts onto circular needle. '),
@@ -332,8 +324,15 @@ class TestParser(unittest.TestCase):
             Annotation('Wear with flair!'),
             Annotation('ABOUT THE DESIGNER'),
             Annotation('Kat\'s latest knitting project is her son Felix. Felix loves to pull on the shawls as Kat knits them. Someday, she thinks he may be a knitter too.'),
-            Annotation('Pattern & images c 2004 Kat Coyle. Contact Kat.')
-        ])
+            Annotation('Pattern & images (c) 2004 Kat Coyle. Contact Kat.')
+        ]
+
+        pattern = None
+        with open('test_files/scarf-advanced.txt') as pattern_file:
+            pattern = pattern_file.read()
+        parsed_pattern = knitparser.parse(pattern)
+
+        self.assertEqual(pattern_tree, parsed_pattern)
 
 if __name__ == '__main__':
     unittest.main()
