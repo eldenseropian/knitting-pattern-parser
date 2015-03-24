@@ -100,6 +100,7 @@ def parse_repeat(line, match, pattern):
     return Repeat([Annotation(line)], pattern.next_row_number)
     
 def parse_repeat_every_other(line, match):
+    # TODO: add rs/ws
     header, body = line[:line.index(':')], line[line.index(':') + 1 :].strip('.,:;')
     number = find_all_nums(header)[0]
     row = Row([Annotation(body)], number)
@@ -134,13 +135,13 @@ def parse_in_row_repeat(line, match):
         if until.startswith('to'):
             until = until[2:].strip()
         return Row([
-            InRowRepeat([Annotation(repeated_section)], until),
-            InRowRepeat([Annotation(end[end.index('repeat') + len('repeat') :].strip('.,;:'))])
+            InRowRepeat(Annotation(repeated_section), until),
+            InRowRepeat(Annotation(end[end.index('repeat') + len('repeat') :].strip('.,;:')))
         ], row_number)
     if 'across' in end:
         other_instructions = end[end.index('across') + len('across') :].lstrip(';:. ').strip(',:. ')
         return Row([
-            InRowRepeat([Annotation(repeated_section)], 'across'),
+            InRowRepeat(Annotation(repeated_section), 'across'),
             Annotation(other_instructions)],
         row_number)
     if 'to' in end:
@@ -148,10 +149,10 @@ def parse_in_row_repeat(line, match):
         if beg:
             return Row([
                 Annotation(beg),
-                InRowRepeat([Annotation(repeated_section)], until),
+                InRowRepeat(Annotation(repeated_section), until),
             ], row_number)
         return Row([
-            InRowRepeat([Annotation(repeated_section)], until),
+            InRowRepeat(Annotation(repeated_section), until),
         ], row_number)
     if 'more' in end:
         until = end[: end.index('more') + len('more')].strip()
@@ -159,19 +160,19 @@ def parse_in_row_repeat(line, match):
         if beg:
             return Row([
                 Annotation(beg),
-                InRowRepeat([Annotation(repeated_section)], until),
+                InRowRepeat(Annotation(repeated_section), until),
                 Annotation(other_instructions)
             ], row_number)
         return Row([
-            InRowRepeat([Annotation(repeated_section)], until),
+            InRowRepeat(Annotation(repeated_section), until),
             Annotation(other_instructions)
         ], row_number)
     if beg:
         return Row([
             Annotation(beg),
-            InRowRepeat([Annotation(repeated_section)], end)
+            InRowRepeat(Annotation(repeated_section), end)
         ], row_number)
-    return Row([InRowRepeat([Annotation(repeated_section)], end)], row_number)
+    return Row([InRowRepeat(Annotation(repeated_section), end)], row_number)
 
 
 def unroll():

@@ -20,8 +20,8 @@ class TestParser(unittest.TestCase):
             Annotation('Cast on an odd number of stitches in a yarn and needle size that you like together. The sample shown here and on my website, spindyeknit.com was made with Soft Baby from Rowan. I cast on 13 stitches using size 11 (6.5 mm) needles. I made a second version in a variegated color of Suri Dream from Knit Picks that shows the versatility of this easy pattern, but unfortunately blogger ate the only photo.'),
             Annotation('Exact gauge is not important, but the fabric should be light and airy, not tight and stiff.'),
             Repeat([Row([Annotation('Purl')], 1)], 1, 'WS'),
-            Row([InRowRepeat([Annotation('K2tog, yo')], 'across'), Annotation('end k1')], 2),
-            Row([Annotation('K1'), InRowRepeat([Annotation('yo, ssk')], 'end of row')], 4),
+            Row([InRowRepeat(Annotation('K2tog, yo'), 'across'), Annotation('end k1')], 2),
+            Row([Annotation('K1'), InRowRepeat(Annotation('yo, ssk'), 'end of row')], 4),
             Annotation('Bind off loosely and block to open up the lace.'),
             Annotation('(Note: See this month\'s knitting lessons for a stretchy bind off and tips on blocking lace.)'),
             Annotation('Posted by Donna at 7:53 AM'),
@@ -36,20 +36,20 @@ class TestParser(unittest.TestCase):
         self.assertEqual(pattern_tree, parsed_pattern)
 
     def test_intermediate_pattern(self):
-        row5 = Row([Annotation('With A'), InRowRepeat([Annotation('k8, yo, sl next st purlwise, k1')], 'twice more'), Annotation('k7')], 5)
-        row6 = Row([Annotation('With A, p8'), InRowRepeat([Annotation('sl next st and yo from previous row purlwise, wrap yarn counterclockwise around RH needle once (this adds a new yo on top of previous yo), p9')], 'once more'), Annotation('sl next st and yo from previous row purlwise, wrap yarn counterclockwise around RH needle once, p8')], 6)
-        row7 = Row([Annotation('With A'), InRowRepeat([Annotation('k8, yo, sl next st and yo\'s purlwise, k1')], 'twice more'), Annotation('k7')], 7)
-        row8 = Row([Annotation('With A, p8'), InRowRepeat([Annotation('sl next st and all yo\'s purlwise, wrap yarn counterclockwise around RH needle once, p9')], 'once more'), Annotation('slip next st and all yo\'s purlwise, wrap yarn counterclockwise around RH needle once, p8')], 8)
+        row5 = Row([Annotation('With A'), InRowRepeat(Annotation('k8, yo, sl next st purlwise, k1'), 'twice more'), Annotation('k7')], 5)
+        row6 = Row([Annotation('With A, p8'), InRowRepeat(Annotation('sl next st and yo from previous row purlwise, wrap yarn counterclockwise around RH needle once (this adds a new yo on top of previous yo), p9'), 'once more'), Annotation('sl next st and yo from previous row purlwise, wrap yarn counterclockwise around RH needle once, p8')], 6)
+        row7 = Row([Annotation('With A'), InRowRepeat(Annotation('k8, yo, sl next st and yo\'s purlwise, k1'), 'twice more'), Annotation('k7')], 7)
+        row8 = Row([Annotation('With A, p8'), InRowRepeat(Annotation('sl next st and all yo\'s purlwise, wrap yarn counterclockwise around RH needle once, p9'), 'once more'), Annotation('slip next st and all yo\'s purlwise, wrap yarn counterclockwise around RH needle once, p8')], 8)
         row11 = Row([Annotation('With B, knit across, knitting all yo\'s together with corresponding slipped sts.')], 11)
         row12 = Row([Annotation('With B, purl.')], 12)
         row15 = Row([
             Annotation('With A, k3'),
-            InRowRepeat([Annotation('yo, sl next st and all yo\'s purlwise, k9')], 'twice more'),
+            InRowRepeat(Annotation('yo, sl next st and all yo\'s purlwise, k9'), 'twice more'),
             Annotation('yo, sl next st and all yo\'s purlwise, k3')
         ], 15)
         row16 = Row([
             Annotation('With A, p3'),
-            InRowRepeat([Annotation('sl next st and all previous yo\'s purlwise, wrap yarn counterclockwise around RH needle once, p9')], 'twice more'),
+            InRowRepeat(Annotation('sl next st and all previous yo\'s purlwise, wrap yarn counterclockwise around RH needle once, p9'), 'twice more'),
             Annotation('sl next st purlwise, wrap yarn counterclockwise around RH needle once, p3')
         ], 16)
 
@@ -89,8 +89,8 @@ class TestParser(unittest.TestCase):
             Reference(row8, 10),
             row11,
             row12,
-            Row([Annotation('With A, k3'), InRowRepeat([Annotation('yo, sl next st purlwise, k9')], 'twice more'), Annotation('yo, sl next st purlwise, k3')], 13),
-            Row([Annotation('With A, p3'), InRowRepeat([Annotation('sl next st and yo from previous row purlwise, wrap yarn counterclockwise around RH needle once, p9')], 'twice more'), Annotation('sl next st and yo from previous row purlwise, wrap yarn counterclockwise around RH needle once, p3')], 14),
+            Row([Annotation('With A, k3'), InRowRepeat(Annotation('yo, sl next st purlwise, k9'), 'twice more'), Annotation('yo, sl next st purlwise, k3')], 13),
+            Row([Annotation('With A, p3'), InRowRepeat(Annotation('sl next st and yo from previous row purlwise, wrap yarn counterclockwise around RH needle once, p9'), 'twice more'), Annotation('sl next st and yo from previous row purlwise, wrap yarn counterclockwise around RH needle once, p3')], 14),
             row15,
             row16,
             Repeat([Reference(row15), Reference(row16)], 17, 3),
@@ -116,12 +116,13 @@ class TestParser(unittest.TestCase):
 
     def test_advanced_pattern(self):
         leavesRow1 = Row([
-            InRowRepeat([
-                Annotation('[p1, k2tog, yo, p1], ssk-L-pnso-R, k5, yo, k1, yo, k3, yo, k1, yo, k2, sl 1-k2tog-psso')
-            ], 'last 4 sts'),
-            InRowRepeat([
+            InRowRepeat(
+                Annotation('[p1, k2tog, yo, p1], ssk-L-pnso-R, k5, yo, k1, yo, k3, yo, k1, yo, k2, sl 1-k2tog-psso'),
+                'last 4 sts'
+            ),
+            InRowRepeat(
                 Annotation('4st panel')
-            ])
+            )
         ], 1)
         
         leavesRow2 = Row([
@@ -129,48 +130,52 @@ class TestParser(unittest.TestCase):
         ], 2)
         
         leavesRow3 = Row([
-            InRowRepeat([
-                Annotation('[p1, yo, ssk, p1], ssk-L-pnso-R, k4, yo, k1, yo, k5, [yo, k1] twice, sl 1-k2tog-psso')
-            ], 'last 4 sts'),
-            InRowRepeat([
+            InRowRepeat(
+                Annotation('[p1, yo, ssk, p1], ssk-L-pnso-R, k4, yo, k1, yo, k5, [yo, k1] twice, sl 1-k2tog-psso'),
+               'last 4 sts'
+            ),
+            InRowRepeat(
                 Annotation('4st panel')
-            ])
+            )
         ], 3)
 
         leavesRow5 = Row([
-            InRowRepeat([
-                Annotation('[p1, k2tog, yo, p1], ssk-L-pnso-R, k3, yo, k1, yo, k7, yo, k1, yo, sl 1-k2tog-psso')
-            ], 'last 4 sts'),
-            InRowRepeat([
+            InRowRepeat(
+                Annotation('[p1, k2tog, yo, p1], ssk-L-pnso-R, k3, yo, k1, yo, k7, yo, k1, yo, sl 1-k2tog-psso'),
+               'last 4 sts'
+            ),
+            InRowRepeat(
                 Annotation('4st panel')
-            ])
+            )
         ], 5)
 
         leavesRow7 = Row([
-            InRowRepeat([
-                Annotation('[p1, yo, ssk, p1], ssk-L-pnso-R, k2, yo, k1, yo, k3, yo, k1, yo, k5, sl 1-k2tog-psso')
-            ], 'last 4 sts'),
-            InRowRepeat([
+            InRowRepeat(
+                Annotation('[p1, yo, ssk, p1], ssk-L-pnso-R, k2, yo, k1, yo, k3, yo, k1, yo, k5, sl 1-k2tog-psso'),
+               'last 4 sts'),
+            InRowRepeat(
                 Annotation('4st panel')
-            ])
+            )
         ], 7)
 
         leavesRow9 = Row([
-            InRowRepeat([
-                Annotation('[p1, k2tog, yo, p1], ssk-L-pnso-R, [k1, yo] twice, k5, yo, k1, yo, k4, sl 1-k2tog-psso')
-            ], 'last 4 sts'),
-            InRowRepeat([
+            InRowRepeat(
+                Annotation('[p1, k2tog, yo, p1], ssk-L-pnso-R, [k1, yo] twice, k5, yo, k1, yo, k4, sl 1-k2tog-psso'),
+               'last 4 sts'
+            ),
+            InRowRepeat(
                 Annotation('4st panel')
-            ])
+            )
         ], 9)
 
         leavesRow11 = Row([
-            InRowRepeat([
-                Annotation('[p1, yo, ssk, p1], ssk-L-pnso-R, yo, k1, yo, k7, yo, k1, yo, k3, sl 1-k2tog-psso')
-            ], 'last 4 sts'),
-            InRowRepeat([
+            InRowRepeat(
+                Annotation('[p1, yo, ssk, p1], ssk-L-pnso-R, yo, k1, yo, k7, yo, k1, yo, k3, sl 1-k2tog-psso'),
+               'last 4 sts'
+            ),
+            InRowRepeat(
                 Annotation('4st panel')
-            ])
+            )
         ], 11)
 
         wavesRow1 = Row([

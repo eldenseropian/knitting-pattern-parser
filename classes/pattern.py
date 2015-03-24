@@ -26,9 +26,10 @@ class Pattern:
     def __eq__(self, other):
         if other.__class__ is not Pattern:
             return False
-        if len(self.components) != len(other.components):
-            return False
-        return reduce(lambda x, y: x and y, [self.components[i] == other.components[i] for i in range(len(self.components))])
+        return compare_pairwise(self.components, other.components)
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     def add_component(self, component):
         if not is_valid_component(component):
@@ -78,7 +79,16 @@ def is_valid_row_component(component):
 def is_and_all_repeat(component):
     return component.__class__ == Repeat and (component.times == 'even' or component.times == 'odd')
 
+def is_annotation(instance):
+    return instance.__class__ == Annotation
+
+def compare_pairwise(components1, components2):
+    if len(components1) != len(components2):
+        return False
+    return reduce(lambda x, y: x and y, [components1[i] == components2[i] for i in range(len(components1))])
+
 from annotation import *
+from in_row_repeat import *
 from reference import *
 from repeat import *
 from row import *
