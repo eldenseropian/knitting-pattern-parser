@@ -51,26 +51,27 @@ class TestE2ERowParsing(unittest.TestCase):
     """Test parsing rows within the context of a pattern."""
 
     def setUp(self):
-        self.tree = Pattern('Test Pattern', [
-            Annotation('Blah blah this is a pattern.'),
-            Row([Annotation('Ooh here is a row!')], 1),
-            Row([Annotation('Wow, another one!')], 2)
-        ])
+        self.tree = Pattern('Test Pattern')
+        self.tree += Annotation('Blah blah this is a pattern.')
+        self.tree +=Row([Annotation('Ooh here is a row!')], 1)
+        self.tree +=Row([Annotation('Wow, another one!')], 2)
 
     def test_no_rows(self):
         pattern = 'Test Pattern\nBlah blah this is a pattern.\n\nWoo more pattern.'
-        tree = Pattern('Test Pattern', [
-            Annotation('Blah blah this is a pattern.'),
-            Annotation('Woo more pattern.')
-        ])
+        
+        tree = Pattern('Test Pattern')
+        tree += Annotation('Blah blah this is a pattern.')
+        tree += Annotation('Woo more pattern.')
+        
         self.assertEqual(tree, knitparser.parse(pattern))
 
     def test_one_row(self):
         pattern = 'Test Pattern\nBlah blah this is a pattern.\nRow 1. Ooh here is a row!'
-        tree = Pattern('Test Pattern', [
-            Annotation('Blah blah this is a pattern.'),
-            Row([Annotation('Ooh here is a row!')], 1),
-        ])
+        
+        tree = Pattern('Test Pattern')
+        tree += Annotation('Blah blah this is a pattern.')
+        tree += Row([Annotation('Ooh here is a row!')], 1)
+
         self.assertEqual(tree, knitparser.parse(pattern))
 
     def test_multiple_rows(self):

@@ -29,8 +29,9 @@ class TestLegalInitialization(unittest.TestCase):
     """Test that a basic pattern can be constructed."""
 
     def test(self):
-        self.assertEqual(knitparser.parse('Test Pattern\ntest'),
-            Pattern('Test Pattern', [Annotation('test')]))
+        pattern = Pattern('Test Pattern')
+        pattern += Annotation('test')
+        self.assertEqual(knitparser.parse('Test Pattern\ntest'), pattern)
 
 if __name__ == '__main__':
     unittest.main()

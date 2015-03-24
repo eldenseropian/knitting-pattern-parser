@@ -19,28 +19,32 @@ class TestRowRepeatParsing(unittest.TestCase):
 
     def test_single_repeat(self):
         pattern = 'Rows 9 and 10: Rep Rows 7 and 8 once more.'
+
+        pattern_tree = Pattern('Test Pattern')
+        pattern_tree += Row([Annotation('a')], 7)
+        pattern_tree += Row([Annotation('a')], 8)
+
         tree = [
             Reference(Row([Annotation('a')], 7)),
             Reference(Row([Annotation('a')], 8)),
         ]
-        parsed_tree = knitparser.parse_repeat(pattern, re.match(knitparser.REPEAT_REGEX, pattern), {
-            7: Row([Annotation('a')], 7),
-            8: Row([Annotation('a')], 8),
-            'next_row': 9
-        })
+
+        parsed_tree = knitparser.parse_repeat(pattern, re.match(knitparser.REPEAT_REGEX, pattern), pattern_tree)
         self.assertEqual(tree, parsed_tree)
 
     def test_multiple_repeat(self):
         pattern = 'Rows 17 - 22: Rep Rows 15 and 16 three times more.'
+
+        pattern_tree = Pattern('Test Pattern')
+        pattern_tree += Row([Annotation('a')], 15)
+        pattern_tree += Row([Annotation('a')], 16)
+
         tree = Repeat([
             Reference(Row([Annotation('a')], 15)),
             Reference(Row([Annotation('a')], 16)),
         ], 17, 3)
-        parsed_tree = knitparser.parse_repeat(pattern, re.match(knitparser.REPEAT_REGEX, pattern), {
-            15: Row([Annotation('a')], 15),
-            16: Row([Annotation('a')], 16),
-            'next_row': 17
-        })
+
+        parsed_tree = knitparser.parse_repeat(pattern, re.match(knitparser.REPEAT_REGEX, pattern), pattern_tree)
         self.assertEqual(tree, parsed_tree)
 
 class TestInRowRepeatParsing(unittest.TestCase):
@@ -49,7 +53,7 @@ class TestInRowRepeatParsing(unittest.TestCase):
         pattern = 'Row 1: *[p1, k2tog, yo, p1], ssk-L-pnso-R, k5, yo, k1, yo, k3, yo, k1, yo, k2, sl 1-k2tog-psso. Repeat from * to last 4 sts, repeat 4st panel.'
         tree = Row([
             InRowRepeat([Annotation('[p1, k2tog, yo, p1], ssk-L-pnso-R, k5, yo, k1, yo, k3, yo, k1, yo, k2, sl 1-k2tog-psso')], 'last 4 sts'),
-            InRowRepeat([Annotation('4st panel.')])
+            InRowRepeat([Annotation('4st panel')])
         ], 1)
         parsed_tree = knitparser.parse_in_row_repeat(pattern, re.match(knitparser.IN_ROW_REPEAT_REGEX, pattern))
 
