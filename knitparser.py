@@ -45,7 +45,6 @@ def parse(pattern_text):
                             new_component = Annotation(line)
             pattern_tree += new_component
 
-    # print pattern_tree
     return pattern_tree
 
 def parse_row(line, match):
@@ -93,10 +92,12 @@ def parse_repeat(line, match, pattern):
 
         repeated_rows = [Reference(pattern.get_row(i)) for i in range(ref_start, ref_end + 1)]
         return Repeat(repeated_rows, pattern.next_row_number - nums_before[0], times)
+
     elif len(nums_before) == 0 and len(nums_after) == 2:
         ref_start, ref_end = nums_after[0], nums_after[-1]
         repeated_rows = [Reference(pattern.get_row(i)) for i in range(ref_start, ref_end + 1)]
         return [Repeat(repeated_rows, ref_start), Annotation(line[line.index('for') :].strip('.;,:'))]
+
     return Repeat([Annotation(line)], pattern.next_row_number)
     
 def parse_repeat_every_other(line, match):
@@ -114,10 +115,6 @@ def parse_repeat_every_other(line, match):
     if 'ws' in line or 'wrong side' in line.lower():
         return Repeat([row], row.number, 'WS')
     return Repeat([Annotation(line)], row.number)
-
-"""
-Row 5: With A, * k8, yo, sl next st purlwise, k1, rep from * twice more, k7.
-"""
 
 def parse_in_row_repeat(line, match):
     start, length = match.span()
@@ -192,8 +189,9 @@ def find_all_nums(line):
 if __name__ == '__main__':
     # pat = open('tests/test_files/scarf-beginner.txt', 'r')
     # pat = open('tests/test_files/scarf-intermediate.txt', 'r')
-    pat = open('tests/test_files/scarf-advanced.txt', 'r')
-    pat_lines = pat.read()
-    pat.close()
+    # pat = open('tests/test_files/scarf-advanced.txt', 'r')
+    # pat_lines = pat.read()
+    # pat.close()
     # print pat_lines
+    # TODO: take file specified by command line arg
     parse(pat_lines)

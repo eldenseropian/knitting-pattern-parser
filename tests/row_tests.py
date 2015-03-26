@@ -53,8 +53,8 @@ class TestE2ERowParsing(unittest.TestCase):
     def setUp(self):
         self.tree = Pattern('Test Pattern')
         self.tree += Annotation('Blah blah this is a pattern.')
-        self.tree +=Row([Annotation('Ooh here is a row!')], 1)
-        self.tree +=Row([Annotation('Wow, another one!')], 2)
+        self.tree += Row([Annotation('Ooh here is a row!')], 1)
+        self.tree += Row([Annotation('Wow, another one!')], 2)
 
     def test_no_rows(self):
         pattern = 'Test Pattern\nBlah blah this is a pattern.\n\nWoo more pattern.'

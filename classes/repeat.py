@@ -1,4 +1,4 @@
-from pattern import is_valid_component, compare_pairwise
+from pattern import is_valid_component, is_equal_pairwise
 
 class Repeat:
     """Represents a row or series of rows that are repeated."""
@@ -51,7 +51,7 @@ class Repeat:
             return False
         if self.times != other.times:
             return False
-        return compare_pairwise(self.components, other.components)
+        return is_equal_pairwise(self.components, other.components)
 
     def __ne__(self, other):
         return not self.__eq__(other)

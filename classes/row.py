@@ -1,4 +1,4 @@
-from pattern import is_valid_row_component, compare_pairwise
+from pattern import is_valid_row_component, is_equal_pairwise
 
 class Row:
     """A Row is the most common unit of organization in a pattern.
@@ -49,7 +49,7 @@ class Row:
             return False
         if self.side != other.side:
             return False
-        return compare_pairwise(self.components, other.components)
+        return is_equal_pairwise(self.components, other.components)
 
     def __ne__(self, other):
         return not self.__eq__(other)
