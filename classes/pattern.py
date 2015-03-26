@@ -119,11 +119,6 @@ class Pattern:
 
         if component.__class__ in [Row, InRowRepeat, Reference]:
             self.add_row(component)
-            if component.number < self.next_row_number:
-                if 'even' in self._rows:
-                    del self._rows['even']
-                if 'odd' in self._rows:
-                    del self._rows['odd']
             self.next_row_number = component.number + 1
 
         elif is_and_all_repeat(component):
