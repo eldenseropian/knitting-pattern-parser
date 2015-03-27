@@ -8,50 +8,58 @@ from pattern import *
 from repeat import *
 from row import *
 
-LABEL_REGEX = '(Row(s)?\s|Round(s)?\s)'
-SIDE_REGEX = '(\s[\[\(]WS[\)\]]|\s[\(\[]RS[\)\]])?'
+LABEL_REGEX = '(row(s)?\s|round(s)?\s)'
+SIDE_REGEX = '(\s[\[\(]ws[\)\]]|\s[\(\[]rs[\)\]])?'
 NUMBER_REGEX = '\d+'
 END_REGEX = '[\.:]?'
-ROW_REGEX = re.compile(LABEL_REGEX + NUMBER_REGEX + SIDE_REGEX + END_REGEX)
-REPEAT_REGEX = re.compile('.*[rR]ep\s[rR]ows|[rR]epeat\s[rR]ows')
+NUMBERED_ROW_REGEX = re.compile(LABEL_REGEX + NUMBER_REGEX + SIDE_REGEX + END_REGEX)
+REPEAT_REGEX = re.compile('.*rep\srows|repeat\srows')
 EVERY_OTHER_REGEX = re.compile('.*and all.{,15}rows')
-IN_ROW_REPEAT_REGEX = re.compile('.*\*.*[rR]ep(eat)? from \*')
+IN_ROW_REPEAT_REGEX = re.compile('.*\*.*rep(eat)? from \*')
 
 def parse(pattern_text):
     pattern_text = pattern_text.splitlines()
     pattern_tree = Pattern(pattern_text[0])
 
     for line in pattern_text[1:]:
-        new_component = None
-        if line.strip():
-            match = re.match(IN_ROW_REPEAT_REGEX, line)
-            if match:
-                new_component = parse_in_row_repeat(line, match)
-            else:
-                match = re.match(EVERY_OTHER_REGEX, line)
-                if match:
-                    new_component = parse_repeat_every_other(line, match)
-                else:
-                    match = re.match(REPEAT_REGEX, line)
-                    if match:
-                        new_component = parse_repeat(line, match, pattern_tree)
-                    else:
-                        match = re.match(ROW_REGEX, line)
-                        if match:
-                            new_component = parse_row(line, match)
-                        elif 'row:' in line.lower():
-                            new_component = Row([Annotation(line[line.lower().index('row:') + len('row:') :].strip())], pattern_tree.next_row_number)
-                        else:
-                            new_component = Annotation(line)
+        new_component = parse_line(line, pattern_tree)
+        if new_component:
             pattern_tree += new_component
 
     return pattern_tree
 
+def parse_line(line, pattern_tree):
+    if not line.strip():
+        return None
+
+    line_to_match = line.lower()
+
+    match = re.match(IN_ROW_REPEAT_REGEX, line_to_match)
+    if match:
+        return parse_in_row_repeat(line, match)
+
+    match = re.match(EVERY_OTHER_REGEX, line_to_match)
+    if match:
+        return parse_repeat_every_other(line, match)
+
+    match = re.match(REPEAT_REGEX, line_to_match)
+    if match:
+        return parse_repeat(line, match, pattern_tree)
+
+    match = re.match(NUMBERED_ROW_REGEX, line_to_match)
+    if match:
+        return parse_row(line, match)
+
+    if 'row:' in line_to_match:
+        return Row([Annotation(line[line_to_match.index('row:') + len('row:') :].strip())], pattern_tree.next_row_number)
+
+    return Annotation(line)
+
 def parse_row(line, match):
     start, length = match.span()
     header = line[start : start + length]
-    header = re.sub(LABEL_REGEX, '', header)
-    header = re.sub(END_REGEX, '', header)
+    header = re.sub(LABEL_REGEX, '', header.lower())
+    header = re.sub(END_REGEX, '', header.lower())
     header = header.split()
     text = line[start + length + 1 :]
     row_num = int(header[0])
@@ -63,7 +71,7 @@ def parse_row(line, match):
     row = Row([Annotation(text)], row_num, side)
     return row
 
-def parse_repeat(line, match, pattern):
+def parse_repeat(line, match, pattern_tree):
     start, length = match.span()
     nums_before = find_all_nums(line[start : start + length])
     nums_after = find_all_nums(line[start + length :])
@@ -77,28 +85,28 @@ def parse_repeat(line, match, pattern):
         times = num_in_repeat/num_in_ref
         
         if times == 1:
-            parsed_rows = [Reference(pattern.get_row(i), pattern.next_row_number + i - ref_start) for i in range(ref_start, ref_end + 1)]
+            parsed_rows = [Reference(pattern_tree.get_row(i), pattern_tree.next_row_number + i - ref_start) for i in range(ref_start, ref_end + 1)]
             return parsed_rows
         
-        parsed_rows = [Reference(pattern.get_row(i)) for i in range(ref_start, ref_end + 1)]
+        parsed_rows = [Reference(pattern_tree.get_row(i)) for i in range(ref_start, ref_end + 1)]
         return Repeat(parsed_rows, repeat_start, num_in_repeat/num_in_ref)
     
     elif len(nums_before) == 1 and nums_after[-1] - nums_after[0] + 1 == nums_before[0]:
         ref_start, ref_end = nums_after[0], nums_after[-1]
         times = nums_before[0]/(ref_end - ref_start + 1)
         if times == 1:
-            parsed_rows = [Reference(pattern.get_row(i), pattern.next_row_number + i - ref_start) for i in range(ref_start, ref_end + 1)]
+            parsed_rows = [Reference(pattern_tree.get_row(i), pattern_tree.next_row_number + i - ref_start) for i in range(ref_start, ref_end + 1)]
             return parsed_rows
 
-        repeated_rows = [Reference(pattern.get_row(i)) for i in range(ref_start, ref_end + 1)]
-        return Repeat(repeated_rows, pattern.next_row_number - nums_before[0], times)
+        repeated_rows = [Reference(pattern_tree.get_row(i)) for i in range(ref_start, ref_end + 1)]
+        return Repeat(repeated_rows, pattern_tree.next_row_number - nums_before[0], times)
 
     elif len(nums_before) == 0 and len(nums_after) == 2:
         ref_start, ref_end = nums_after[0], nums_after[-1]
-        repeated_rows = [Reference(pattern.get_row(i)) for i in range(ref_start, ref_end + 1)]
+        repeated_rows = [Reference(pattern_tree.get_row(i)) for i in range(ref_start, ref_end + 1)]
         return [Repeat(repeated_rows, ref_start), Annotation(line[line.index('for') :].strip('.;,:'))]
 
-    return Repeat([Annotation(line)], pattern.next_row_number)
+    return Repeat([Annotation(line)], pattern_tree.next_row_number)
     
 def parse_repeat_every_other(line, match):
     # TODO: add rs/ws
