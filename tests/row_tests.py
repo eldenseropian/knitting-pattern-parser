@@ -30,22 +30,22 @@ class TestUnitRowParsing(unittest.TestCase):
     def test_first_row(self):
         pattern = 'Row 1. Ooh here is a row!'
         row = Row([Annotation('Ooh here is a row!')], 1)
-        self.assertEquals(row, knitparser.parse_row(pattern, re.match(knitparser.NUMBERED_ROW_REGEX, pattern.lower())))
+        self.assertEquals(row, knitparser.parse_row(pattern, re.match(knitparser.NUMBERED_ROW_REGEX, pattern)))
 
     def test_nth_row(self):
         pattern = 'Row 5. Ooh here is a row!'
         row = Row([Annotation('Ooh here is a row!')], 5)
-        self.assertEquals(row, knitparser.parse_row(pattern, re.match(knitparser.NUMBERED_ROW_REGEX, pattern.lower())))
+        self.assertEquals(row, knitparser.parse_row(pattern, re.match(knitparser.NUMBERED_ROW_REGEX, pattern)))
 
     def test_first_round(self):
         pattern = 'Round 1. Ooh here is a row!'
         row = Row([Annotation('Ooh here is a row!')], 1)
-        self.assertEquals(row, knitparser.parse_row(pattern, re.match(knitparser.NUMBERED_ROW_REGEX, pattern.lower())))
+        self.assertEquals(row, knitparser.parse_row(pattern, re.match(knitparser.NUMBERED_ROW_REGEX, pattern)))
 
     def test_nth_round(self):
         pattern = 'Round 25. Ooh here is a row!'
         row = Row([Annotation('Ooh here is a row!')], 25)
-        self.assertEquals(row, knitparser.parse_row(pattern, re.match(knitparser.NUMBERED_ROW_REGEX, pattern.lower())))
+        self.assertEquals(row, knitparser.parse_row(pattern, re.match(knitparser.NUMBERED_ROW_REGEX, pattern)))
 
 class TestE2ERowParsing(unittest.TestCase):
     """Test parsing rows within the context of a pattern."""

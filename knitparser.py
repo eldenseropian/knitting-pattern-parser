@@ -1,21 +1,37 @@
-import os
+from os.path import join
 import re
-import sys
+from sys import path
 
-sys.path.append(os.path.join('.', 'classes'))
+path.append(join('.', 'classes'))
 from annotation import *
 from pattern import *
 from repeat import *
 from row import *
 
-LABEL_REGEX = '(row(s)?\s|round(s)?\s)'
+####################
+# Regex's for rows #
+####################
+#
+LABEL_REGEX = '(row|round)\s'
 SIDE_REGEX = '(\s[\[\(]ws[\)\]]|\s[\(\[]rs[\)\]])?'
-NUMBER_REGEX = '\d+'
-END_REGEX = '[\.:]?'
-NUMBERED_ROW_REGEX = re.compile(LABEL_REGEX + NUMBER_REGEX + SIDE_REGEX + END_REGEX)
-REPEAT_REGEX = re.compile('.*rep\srows|repeat\srows')
-EVERY_OTHER_REGEX = re.compile('.*and all.{,15}rows')
-IN_ROW_REPEAT_REGEX = re.compile('.*\*.*rep(eat)? from \*')
+NUMBERED_ROW_REGEX = re.compile(LABEL_REGEX + '\d+' + SIDE_REGEX + '[\.:]', re.IGNORECASE)
+
+UNNUMBERED_ROW_REGEX = re.compile('.*row:', re.IGNORECASE)
+
+IN_ROW_REPEAT_REGEX = re.compile('.*\*.*rep(eat)? from \*', re.IGNORECASE)
+
+ANY_ROW_REGEX = re.compile('.*(row|round).*[\.:]', re.IGNORECASE)
+
+#######################
+# Regex's for repeats #
+#######################
+
+REPEAT_REGEX = re.compile('.*rep\srows|repeat\srows', re.IGNORECASE)
+
+EVERY_OTHER_REGEX = re.compile('.*and all.{,15}rows', re.IGNORECASE)
+
+ANY_REPEAT_REGEX = re.compile('.*(rep|and all)', re.IGNORECASE)
+
 
 def parse(pattern_text):
     pattern_text = pattern_text.splitlines()
@@ -32,44 +48,57 @@ def parse_line(line, pattern_tree):
     if not line.strip():
         return None
 
-    line_to_match = line.lower()
+    if re.match(ANY_REPEAT_REGEX, line):
+        component = parse_repeat_dispatcher(line, pattern_tree)
+        if component:
+            return component
 
-    match = re.match(IN_ROW_REPEAT_REGEX, line_to_match)
+    if re.match(ANY_ROW_REGEX, line):
+        component = parse_row_dispatcher(line, pattern_tree)
+        if component:
+            return component
+
+    return Annotation(line)
+
+def parse_row_dispatcher(line, pattern_tree):
+    match = re.match(IN_ROW_REPEAT_REGEX, line)
     if match:
         return parse_in_row_repeat(line, match)
 
-    match = re.match(EVERY_OTHER_REGEX, line_to_match)
-    if match:
-        return parse_repeat_every_other(line, match)
-
-    match = re.match(REPEAT_REGEX, line_to_match)
-    if match:
-        return parse_repeat(line, match, pattern_tree)
-
-    match = re.match(NUMBERED_ROW_REGEX, line_to_match)
+    match = re.match(NUMBERED_ROW_REGEX, line)
     if match:
         return parse_row(line, match)
 
-    if 'row:' in line_to_match:
-        return Row([Annotation(line[line_to_match.index('row:') + len('row:') :].strip())], pattern_tree.next_row_number)
-
-    return Annotation(line)
+    match = re.match(UNNUMBERED_ROW_REGEX, line)
+    if match:
+        return Row([Annotation(line[line.lower().index('row:') + len('row:') :].strip())], pattern_tree.next_row_number)
 
 def parse_row(line, match):
     start, length = match.span()
     header = line[start : start + length]
-    header = re.sub(LABEL_REGEX, '', header.lower())
-    header = re.sub(END_REGEX, '', header.lower())
+    header = re.sub(LABEL_REGEX, '', header, flags=re.IGNORECASE)
+    header = header.strip('.:')
     header = header.split()
     text = line[start + length + 1 :]
     row_num = int(header[0])
     side = None
-    if 'RS' in line.upper() or 'right side' in line.lower():
+    if 'RS' in line.upper() or 'right side' in line:
         side = 'RS'
-    if 'WS' in line.upper() or 'wrong side' in line.lower():
+    if 'WS' in line.upper() or 'wrong side' in line:
         side = 'WS'
     row = Row([Annotation(text)], row_num, side)
     return row
+
+def parse_repeat_dispatcher(line, pattern_tree):
+    match = re.match(EVERY_OTHER_REGEX, line)
+    if match:
+        return parse_repeat_every_other(line, match)
+
+    match = re.match(REPEAT_REGEX, line)
+    if match:
+        return parse_repeat(line, match, pattern_tree)
+
+    return None
 
 def parse_repeat(line, match, pattern_tree):
     start, length = match.span()
@@ -114,13 +143,13 @@ def parse_repeat_every_other(line, match):
     number = find_all_nums(header)[0]
     row = Row([Annotation(body)], number)
 
-    if 'odd' in line.lower():
+    if 'odd' in line:
         return Repeat([row], row.number, 'odd')
-    if 'even' in line.lower():
+    if 'even' in line:
         return Repeat([row], row.number, 'even')
-    if 'rs' in line or 'right side' in line.lower():
+    if 'rs' in line or 'right side' in line:
         return Repeat([row], row.number, 'RS')
-    if 'ws' in line or 'wrong side' in line.lower():
+    if 'ws' in line or 'wrong side' in line:
         return Repeat([row], row.number, 'WS')
     return Repeat([Annotation(line)], row.number)
 
@@ -130,7 +159,7 @@ def parse_in_row_repeat(line, match):
     beg = line[line.index(':') + 1 : line.index('*')].strip(',;:. ')
     row_number = find_all_nums(line[:rep_start])[0]
     subtract = len('rep from *')
-    if 'repeat' in line.lower():
+    if 'repeat' in line:
         subtract = len('repeat from *')
     repeated_section = line[rep_start + 1 : start + length - subtract].strip(',.:; ')
     end = line[start+length :]
@@ -187,7 +216,7 @@ def expand_reference():
     pass
 
 def find_all_nums(line):
-    nums = [num for num in line.replace('-', ' ').split(' ') if re.match(NUMBER_REGEX, num)]
+    nums = [num for num in line.replace('-', ' ').split(' ') if re.match('\d+', num)]
     # removes curly quote
     # TODO: remove not-curly quote and inches etc.
     nums = [num for num in nums if '\xe2\x80\x9d' not in num]
