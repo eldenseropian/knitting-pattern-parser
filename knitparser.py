@@ -11,26 +11,19 @@ from row import *
 ####################
 # Regex's for rows #
 ####################
-#
-LABEL_REGEX = '(row|round)\s'
-SIDE_REGEX = '(\s[\[\(]ws[\)\]]|\s[\(\[]rs[\)\]])?'
-NUMBERED_ROW_REGEX = re.compile(LABEL_REGEX + '\d+' + SIDE_REGEX + '[\.:]', re.IGNORECASE)
 
-UNNUMBERED_ROW_REGEX = re.compile('.*row:', re.IGNORECASE)
-
-IN_ROW_REPEAT_REGEX = re.compile('.*\*.*rep(eat)? from \*', re.IGNORECASE)
-
-ANY_ROW_REGEX = re.compile('.*(row|round).*[\.:]', re.IGNORECASE)
+NUMBERED_ROW_REGEX = '(row|round) \d+( [\(\[](ws|rs)[\)\]])?:'
+UNNUMBERED_ROW_REGEX = '(row|round):'
+IN_ROW_REPEAT_REGEX = '.*\*.*rep(eat)? from \*'
+ROW_REGEX = NUMBERED_ROW_REGEX + '|' + UNNUMBERED_ROW_REGEX + '|' + IN_ROW_REPEAT_REGEX
 
 #######################
 # Regex's for repeats #
 #######################
 
-REPEAT_REGEX = re.compile('.*rep\srows|repeat\srows', re.IGNORECASE)
-
-EVERY_OTHER_REGEX = re.compile('.*and all.{,15}rows', re.IGNORECASE)
-
-ANY_REPEAT_REGEX = re.compile('.*(rep|and all)', re.IGNORECASE)
+REPEAT_ROWS_REGEX = 'rep(eat)? rows'
+EVERY_OTHER_REGEX = 'row \d+ and all'
+REPEAT_REGEX = REPEAT_ROWS_REGEX + '|' + EVERY_OTHER_REGEX
 
 
 def parse(pattern_text):
@@ -38,73 +31,127 @@ def parse(pattern_text):
     pattern_tree = Pattern(pattern_text[0])
 
     for line in pattern_text[1:]:
-        new_component = parse_line(line, pattern_tree)
-        if new_component:
-            pattern_tree += new_component
+        if line.strip():
+            pattern_tree += parse_line(line, pattern_tree)
 
     return pattern_tree
 
 def parse_line(line, pattern_tree):
-    if not line.strip():
-        return None
+    if re.search(REPEAT_REGEX, line, re.IGNORECASE):
+        return parse_repeat_dispatcher(line, pattern_tree)
 
-    if re.match(ANY_REPEAT_REGEX, line):
-        component = parse_repeat_dispatcher(line, pattern_tree)
-        if component:
-            return component
-
-    if re.match(ANY_ROW_REGEX, line):
-        component = parse_row_dispatcher(line, pattern_tree)
-        if component:
-            return component
+    if re.search(ROW_REGEX, line, re.IGNORECASE):
+        return parse_row(line, pattern_tree.next_row_number)
 
     return Annotation(line)
 
-def parse_row_dispatcher(line, pattern_tree):
-    match = re.match(IN_ROW_REPEAT_REGEX, line)
+def parse_row(line, next_row_number):
+    match = re.search(IN_ROW_REPEAT_REGEX, line, re.IGNORECASE)
     if match:
         return parse_in_row_repeat(line, match)
 
-    match = re.match(NUMBERED_ROW_REGEX, line)
+    match = re.search(NUMBERED_ROW_REGEX, line, re.IGNORECASE)
     if match:
-        return parse_row(line, match)
+        return parse_numbered_row(line)
 
-    match = re.match(UNNUMBERED_ROW_REGEX, line)
+    match = re.search(UNNUMBERED_ROW_REGEX, line, re.IGNORECASE)
     if match:
-        return Row([Annotation(line[line.lower().index('row:') + len('row:') :].strip())], pattern_tree.next_row_number)
+        return parse_unnumbered_row(line, match, next_row_number)
 
-def parse_row(line, match):
-    start, length = match.span()
-    header = line[start : start + length]
-    header = re.sub(LABEL_REGEX, '', header, flags=re.IGNORECASE)
-    header = header.strip('.:')
-    header = header.split()
-    text = line[start + length + 1 :]
-    row_num = int(header[0])
+def parse_in_row_repeat(line, match):
+    start, end = match.span()
+    rep_start = line.index('*')
+    beg = line[line.index(':') + 1 : line.index('*')].strip(',;:. ')
+    row_number = find_all_nums(line[:rep_start])[0]
+
+    subtract = len('rep from *')
+    if 'repeat' in line:
+        subtract = len('repeat from *')
+    repeated_section = line[rep_start + 1 : end - subtract].strip(',.:; ')
+
+    end_text = line[end :].strip(' .')
+
+    if 'rep' in end_text:
+        until = end_text[: end_text.index('repeat')].strip().strip(',')
+
+        if until.startswith('to'):
+            until = until[2:].strip()
+        return Row([
+            InRowRepeat(Annotation(repeated_section), until),
+            InRowRepeat(Annotation(end_text[end_text.index('repeat') + len('repeat') :].strip('.,;:')))
+        ], row_number)
+
+    if 'across' in end_text:
+        other_instructions = end_text[end_text.index('across') + len('across') :].lstrip(';:. ').strip(',:. ')
+        return Row([
+            InRowRepeat(Annotation(repeated_section), 'across'),
+            Annotation(other_instructions)],
+        row_number)
+
+    if 'to' in end_text:
+        until = end_text[end_text.index('to') + len('to') :].strip(' .')
+        if beg:
+            return Row([
+                Annotation(beg),
+                InRowRepeat(Annotation(repeated_section), until),
+            ], row_number)
+        return Row([
+            InRowRepeat(Annotation(repeated_section), until),
+        ], row_number)
+
+    if 'more' in end_text:
+        until = end_text[: end_text.index('more') + len('more')].strip()
+        other_instructions = end_text[end_text.index('more') + len('more') :].lstrip(' ,').strip('.')
+        if beg:
+            return Row([
+                Annotation(beg),
+                InRowRepeat(Annotation(repeated_section), until),
+                Annotation(other_instructions)
+            ], row_number)
+        return Row([
+            InRowRepeat(Annotation(repeated_section), until),
+            Annotation(other_instructions)
+        ], row_number)
+
+    if beg:
+        return Row([
+            Annotation(beg),
+            InRowRepeat(Annotation(repeated_section), end_text)
+        ], row_number)
+
+    return Row([InRowRepeat(Annotation(repeated_section), end_text)], row_number)
+
+def parse_numbered_row(line):
+    text = line[line.index(':') + 2 :]
+    number = find_all_nums(line)[0]
     side = None
-    if 'RS' in line.upper() or 'right side' in line:
+    if re.search('rs|right side', line, re.IGNORECASE):
         side = 'RS'
-    if 'WS' in line.upper() or 'wrong side' in line:
+    elif re.search('ws|wrong side', line, re.IGNORECASE):
         side = 'WS'
-    row = Row([Annotation(text)], row_num, side)
+    row = Row([Annotation(text)], number, side)
     return row
 
+def parse_unnumbered_row(line, match, next_row_number):
+    text = line[line.index(':') + 2 :]
+    return Row([Annotation(text)], next_row_number)
+
 def parse_repeat_dispatcher(line, pattern_tree):
-    match = re.match(EVERY_OTHER_REGEX, line)
+    match = re.search(EVERY_OTHER_REGEX, line, re.IGNORECASE)
     if match:
         return parse_repeat_every_other(line, match)
 
-    match = re.match(REPEAT_REGEX, line)
+    match = re.search(REPEAT_ROWS_REGEX, line, re.IGNORECASE)
     if match:
         return parse_repeat(line, match, pattern_tree)
 
     return None
 
 def parse_repeat(line, match, pattern_tree):
-    start, length = match.span()
-    nums_before = find_all_nums(line[start : start + length])
-    nums_after = find_all_nums(line[start + length :])
-    
+    start, end = match.span()
+    nums_before = find_all_nums(line[: start])
+    nums_after = find_all_nums(line[end :])
+
     if len(nums_before) == 2 and len(nums_after) == 2:
         repeat_start, repeat_end = nums_before
         ref_start, ref_end = nums_after
@@ -153,62 +200,6 @@ def parse_repeat_every_other(line, match):
         return Repeat([row], row.number, 'WS')
     return Repeat([Annotation(line)], row.number)
 
-def parse_in_row_repeat(line, match):
-    start, length = match.span()
-    rep_start = line.index('*')
-    beg = line[line.index(':') + 1 : line.index('*')].strip(',;:. ')
-    row_number = find_all_nums(line[:rep_start])[0]
-    subtract = len('rep from *')
-    if 'repeat' in line:
-        subtract = len('repeat from *')
-    repeated_section = line[rep_start + 1 : start + length - subtract].strip(',.:; ')
-    end = line[start+length :]
-    if 'rep' in end:
-        until = end[: end.index('repeat')].strip().strip(',')
-
-        if until.startswith('to'):
-            until = until[2:].strip()
-        return Row([
-            InRowRepeat(Annotation(repeated_section), until),
-            InRowRepeat(Annotation(end[end.index('repeat') + len('repeat') :].strip('.,;:')))
-        ], row_number)
-    if 'across' in end:
-        other_instructions = end[end.index('across') + len('across') :].lstrip(';:. ').strip(',:. ')
-        return Row([
-            InRowRepeat(Annotation(repeated_section), 'across'),
-            Annotation(other_instructions)],
-        row_number)
-    if 'to' in end:
-        until = end[end.index('to') + len('to') :].strip(' .')
-        if beg:
-            return Row([
-                Annotation(beg),
-                InRowRepeat(Annotation(repeated_section), until),
-            ], row_number)
-        return Row([
-            InRowRepeat(Annotation(repeated_section), until),
-        ], row_number)
-    if 'more' in end:
-        until = end[: end.index('more') + len('more')].strip()
-        other_instructions = end[end.index('more') + len('more') :].lstrip(' ,').strip('.')
-        if beg:
-            return Row([
-                Annotation(beg),
-                InRowRepeat(Annotation(repeated_section), until),
-                Annotation(other_instructions)
-            ], row_number)
-        return Row([
-            InRowRepeat(Annotation(repeated_section), until),
-            Annotation(other_instructions)
-        ], row_number)
-    if beg:
-        return Row([
-            Annotation(beg),
-            InRowRepeat(Annotation(repeated_section), end)
-        ], row_number)
-    return Row([InRowRepeat(Annotation(repeated_section), end)], row_number)
-
-
 def unroll():
     pass
 
@@ -216,7 +207,7 @@ def expand_reference():
     pass
 
 def find_all_nums(line):
-    nums = [num for num in line.replace('-', ' ').split(' ') if re.match('\d+', num)]
+    nums = [num for num in line.replace('-', ' ').split(' ') if re.search('\d+', num)]
     # removes curly quote
     # TODO: remove not-curly quote and inches etc.
     nums = [num for num in nums if '\xe2\x80\x9d' not in num]

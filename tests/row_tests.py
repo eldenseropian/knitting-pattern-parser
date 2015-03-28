@@ -28,22 +28,22 @@ class TestUnitRowParsing(unittest.TestCase):
     """Test parsing individual rows outside of the context of a pattern."""
 
     def test_first_row(self):
-        pattern = 'Row 1. Ooh here is a row!'
+        pattern = 'Row 1: Ooh here is a row!'
         row = Row([Annotation('Ooh here is a row!')], 1)
         self.assertEquals(row, knitparser.parse_row(pattern, re.match(knitparser.NUMBERED_ROW_REGEX, pattern)))
 
     def test_nth_row(self):
-        pattern = 'Row 5. Ooh here is a row!'
+        pattern = 'Row 5: Ooh here is a row!'
         row = Row([Annotation('Ooh here is a row!')], 5)
         self.assertEquals(row, knitparser.parse_row(pattern, re.match(knitparser.NUMBERED_ROW_REGEX, pattern)))
 
     def test_first_round(self):
-        pattern = 'Round 1. Ooh here is a row!'
+        pattern = 'Round 1: Ooh here is a row!'
         row = Row([Annotation('Ooh here is a row!')], 1)
         self.assertEquals(row, knitparser.parse_row(pattern, re.match(knitparser.NUMBERED_ROW_REGEX, pattern)))
 
     def test_nth_round(self):
-        pattern = 'Round 25. Ooh here is a row!'
+        pattern = 'Round 25: Ooh here is a row!'
         row = Row([Annotation('Ooh here is a row!')], 25)
         self.assertEquals(row, knitparser.parse_row(pattern, re.match(knitparser.NUMBERED_ROW_REGEX, pattern)))
 
@@ -66,7 +66,7 @@ class TestE2ERowParsing(unittest.TestCase):
         self.assertEqual(tree, knitparser.parse(pattern))
 
     def test_one_row(self):
-        pattern = 'Test Pattern\nBlah blah this is a pattern.\nRow 1. Ooh here is a row!'
+        pattern = 'Test Pattern\nBlah blah this is a pattern.\nRow 1: Ooh here is a row!'
         
         tree = Pattern('Test Pattern')
         tree += Annotation('Blah blah this is a pattern.')
@@ -75,14 +75,10 @@ class TestE2ERowParsing(unittest.TestCase):
         self.assertEqual(tree, knitparser.parse(pattern))
 
     def test_multiple_rows(self):
-        pattern = 'Test Pattern\nBlah blah this is a pattern.\nRow 1. Ooh here is a row!\nRow 2. Wow, another one!'
-        self.assertEqual(self.tree, knitparser.parse(pattern))
         pattern = 'Test Pattern\nBlah blah this is a pattern.\nRow 1: Ooh here is a row!\nRow 2: Wow, another one!'
         self.assertEqual(self.tree, knitparser.parse(pattern))
 
     def test_multiple_rounds(self):
-        pattern = 'Test Pattern\nBlah blah this is a pattern.\nRound 1. Ooh here is a row!\nRound 2. Wow, another one!'
-        self.assertEqual(self.tree, knitparser.parse(pattern))
         pattern = 'Test Pattern\nBlah blah this is a pattern.\nRound 1: Ooh here is a row!\nRound 2: Wow, another one!'
         self.assertEqual(self.tree, knitparser.parse(pattern))
 

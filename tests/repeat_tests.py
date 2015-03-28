@@ -30,7 +30,8 @@ class TestRowRepeatParsing(unittest.TestCase):
             Reference(Row([Annotation('a')], 8)),
         ]
 
-        parsed_tree = knitparser.parse_repeat(pattern, re.match(knitparser.REPEAT_REGEX, pattern), pattern_tree)
+        parsed_tree = knitparser.parse_repeat(pattern, re.search(knitparser.REPEAT_ROWS_REGEX, pattern, re.IGNORECASE), pattern_tree)
+
         self.assertEqual(tree, parsed_tree)
 
     def test_multiple_repeat(self):
@@ -45,7 +46,7 @@ class TestRowRepeatParsing(unittest.TestCase):
             Reference(Row([Annotation('a')], 16)),
         ], 17, 3)
 
-        parsed_tree = knitparser.parse_repeat(pattern, re.match(knitparser.REPEAT_REGEX, pattern), pattern_tree)
+        parsed_tree = knitparser.parse_repeat(pattern, re.search(knitparser.REPEAT_ROWS_REGEX, pattern, re.IGNORECASE), pattern_tree)
         self.assertEqual(tree, parsed_tree)
 
 if __name__ == '__main__':
