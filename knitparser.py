@@ -27,28 +27,71 @@ REPEAT_REGEX = REPEAT_ROWS_REGEX + '|' + EVERY_OTHER_REGEX
 
 
 def parse(pattern_text):
+    """Parse a knitting pattern into an AST.
+
+    Keyword arguments:
+    pattern_text -- the text of the pattern to parse, as a single string
+
+    Returns a Pattern instance.
+    """
+
+    if type(pattern_text) is not str:
+        raise TypeError('pattern_text must be a non-empty string.')
+    if not pattern_text.strip():
+        raise ValueError('pattern_text must be a non-empty string.')
+
     pattern_text = pattern_text.splitlines()
-    pattern_tree = Pattern(pattern_text[0])
+    title = pattern_text[0]
+    pattern_tree = Pattern(title)
 
     for line in pattern_text[1:]:
-        if line.strip():
+        if line.strip(): # ignore blank lines
             pattern_tree += parse_line(line, pattern_tree)
 
     return pattern_tree
 
 def parse_line(line, pattern_tree):
-    if re.search(REPEAT_REGEX, line, re.IGNORECASE):
-        return parse_repeat_dispatcher(line, pattern_tree)
+    """Parse a single line of a knitting pattern.
+
+    Keyword arguments:
+    line -- the line to parse (a string)
+    pattern_tree -- the pattern as parse up to line (a Pattern instance)
+
+    Returns a leaf of the Pattern AST representing the given line.
+    """
+
+    if type(line) is not str:
+        raise TypeError('line must be a non-empty string.')
+    if not line.strip():
+        raise ValueError('line must be a non-empty string.')
+    if pattern_tree.__class__ is not Pattern:
+        raise TypeError('pattern_tree must be a Pattern instance.')
 
     if re.search(ROW_REGEX, line, re.IGNORECASE):
         return parse_row(line)
 
+    if re.search(REPEAT_REGEX, line, re.IGNORECASE):
+        return parse_repeat_dispatcher(line, pattern_tree)
+
     return Annotation(line)
 
 def parse_row(line):
+    """Parse a single line that represents a row.
+
+    Keyword arguments:
+    line -- the line to parse (a string)
+
+    Returns a Row instance.
+    """
+
+    if type(line) is not str:
+        raise TypeError('line must be a non-empty string.')
+    if not line.strip():
+        raise ValueError('line must be a non-empty string.')
+
     row_instructions = line[line.index(':') + 2 :]
 
-    number = find_first_num(line)
+    number = _find_first_num(line)
 
     side = None
     if re.search('rs|right side', line, re.IGNORECASE):
@@ -59,11 +102,32 @@ def parse_row(line):
     row = Row([Annotation(row_instructions)], number, side)
 
     if re.search(IN_ROW_REPEAT_REGEX, line, re.IGNORECASE):
-        return parse_in_row_repeat(row_instructions, number)
+        return parse_in_row_repeat(row_instructions, number, side)
 
     return row
 
-def parse_in_row_repeat(line, row_number):
+def parse_in_row_repeat(line, row_number, side):
+    """Parse a single line that represents a row that contains a repeated section.
+
+    Keyword arguments:
+    line -- the line to parse (a string)
+    row_number -- the number of the row being parsed_rows
+    side - the side of the piece the row is on ('RS', 'WS', or None)
+
+    Returns a Row instance.
+    """
+
+    if type(line) is not str:
+        raise TypeError('line must be a non-empty string.')
+    if not line.strip():
+        raise ValueError('line must be a non-empty string.')
+    if type(row_number) is not int:
+        raise TypeError('row_number must be a positive integer.')
+    if row_number <= 0:
+        raise ValueError('row_number must be a positive integer.')
+    if side not in ['RS', 'WS', None]:
+        raise ValueError('side must be one of ["RS", "WS", None].')
+
     row_components = []
 
     instructions_before_repeat = line[: line.index('*')].strip(CHARS_TO_STRIP)
@@ -120,9 +184,25 @@ def parse_in_row_repeat(line, row_number):
     if final_component:
         row_components.append(final_component)
 
-    return Row(row_components, row_number)
+    return Row(row_components, row_number, side)
 
 def parse_repeat_dispatcher(line, pattern_tree):
+    """Parse an instruction to repeat rows.
+
+    Keyword arguments:
+    line -- the line to parse (a string)
+    pattern_tree -- the pattern as parse up to line (a Pattern instance)
+
+    Returns a Repeat instance.
+    """
+
+    if type(line) is not str:
+        raise TypeError('line must be a non-empty string.')
+    if not line.strip():
+        raise ValueError('line must be a non-empty string.')
+    if pattern_tree.__class__ is not Pattern:
+        raise TypeError('pattern_tree must be a Pattern instance.')
+
     match = re.search(EVERY_OTHER_REGEX, line, re.IGNORECASE)
     if match:
         return parse_repeat_every_other(line, match)
@@ -131,12 +211,31 @@ def parse_repeat_dispatcher(line, pattern_tree):
     if match:
         return parse_repeat(line, match, pattern_tree)
 
-    return None
+    raise RuntimeError('Failed to parse repeat: ' + line)
 
 def parse_repeat(line, match, pattern_tree):
+    """Parse an instruction to repeat rows that is not in an every-other-row fashion.
+
+    Keyword arguments:
+    line -- the line to parse (a string)
+    match -- the re.MatchObject returned by matching line with REPEAT_REGEX
+    pattern_tree -- the pattern as parse up to line (a Pattern instance)
+
+    Returns a Repeat instance.
+    """
+
+    if type(line) is not str:
+        raise TypeError('line must be a non-empty string.')
+    if not line.strip():
+        raise ValueError('line must be a non-empty string.')
+    if match.__class__.__name__ != 'SRE_Match':
+        raise TypeError('match must be an re.MatchObject.')
+    if pattern_tree.__class__ is not Pattern:
+        raise TypeError('pattern_tree must be a Pattern instance.')
+
     start, end = match.span()
-    nums_before = find_all_nums(line[: start])
-    nums_after = find_all_nums(line[end :])
+    nums_before = _find_all_nums(line[: start])
+    nums_after = _find_all_nums(line[end :])
 
     if len(nums_before) == 0 and len(nums_after) == 2:
         # Repeats of the form 'Rep Rows a through b indefinitely'
@@ -174,10 +273,26 @@ def parse_repeat(line, match, pattern_tree):
     return Repeat([Annotation(line)], pattern_tree.next_row_number)
     
 def parse_repeat_every_other(line, match):
+    """Parse an instruction to repeat a row every other row.
+
+    Keyword arguments:
+    line -- the line to parse (a string)
+    match -- the re.MatchObject returned by matching line with REPEAT_REGEX
+
+    Returns a Repeat instance.
+    """
+
+    if type(line) is not str:
+        raise TypeError('line must be a non-empty string.')
+    if not line.strip():
+        raise ValueError('line must be a non-empty string.')
+    if match.__class__.__name__ != 'SRE_Match':
+        raise TypeError('match must be an re.MatchObject.')
+
     which_rows = line[:line.index(':')]
     instructions = line[line.index(':') + 1 :].strip(CHARS_TO_STRIP)
 
-    number = find_first_num(which_rows)
+    number = _find_first_num(which_rows)
     row = Row([Annotation(instructions)], number)
 
     if 'odd' in line:
@@ -197,12 +312,30 @@ def unroll():
 def expand_reference():
     pass
 
-def find_all_nums(line):
+def _find_all_nums(line):
+    """Return a list of all integers in a string.
+
+    Returns an empty list if the string contains no integers.
+    """
+
+    if type(line) is not str:
+        raise TypeError('line must be a string.')
+
     nums = [num for num in line.replace('-', ' ').split(' ') if re.search('\d+', num)]
     nums = [int(''.join([char for char in num if char.isdigit()])) for num in nums]
     return nums
 
-def find_first_num(line):
+def _find_first_num(line):
+    """Return the first integer in a string.
+
+    Raises an exception if the string contains no integers.
+    """
+
+    if type(line) is not str:
+        raise TypeError('line must be a non-empty string.')
+    if not line.strip():
+        raise ValueError('line must be a non-empty string.')
+
     for num in line.replace('-', ' ').split(' '):
         num = num.strip(':,;."')
         if re.match('\d+', num):
@@ -211,6 +344,8 @@ def find_first_num(line):
     raise Exception('Line does not contain number:', line)
 
 if __name__ == '__main__':
+    """Parse a knitting pattern in a text file specified by the command-line argument."""
+
     if len(argv) != 2:
         raise Exception('knitparser must be called with the name of a pattern file to read')
     pat = open(argv[1])
