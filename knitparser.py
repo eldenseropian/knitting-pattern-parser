@@ -138,43 +138,47 @@ def parse_repeat(line, match, pattern_tree):
     nums_before = find_all_nums(line[: start])
     nums_after = find_all_nums(line[end :])
 
-    if len(nums_before) == 2 and len(nums_after) == 2:
-        repeat_start, repeat_end = nums_before
+    if len(nums_before) == 0 and len(nums_after) == 2:
+        # Repeats of the form 'Rep Rows a through b indefinitely'
         ref_start, ref_end = nums_after
-        num_in_repeat = repeat_end - repeat_start + 1
+        parsed_rows = [Reference(pattern_tree.get_row(i)) for i in range(ref_start, ref_end + 1)]
+        instructions_after_repeat = line[line.index('for') :].strip(CHARS_TO_STRIP)
+        return [Repeat(parsed_rows, ref_start), Annotation(instructions_after_repeat)]
+    
+    if len(nums_after) == 2:
+        # Repeats of the form 'Rep Rows a and b over a specified range'
+
+        ref_start, ref_end = nums_after
         num_in_ref = ref_end - ref_start + 1
 
-        times = num_in_repeat/num_in_ref
-        
+        # Next n rows: Rep Rows a and b
+        num_in_repeat = nums_before[0]
+        if len(nums_before) == 2:
+            # Rows x - y: Rep Rows a and b
+            num_in_repeat = nums_before[1] - nums_before[0] + 1
+
+        times = num_in_repeat / num_in_ref
+
         if times == 1:
-            parsed_rows = [Reference(pattern_tree.get_row(i), pattern_tree.next_row_number + i - ref_start) for i in range(ref_start, ref_end + 1)]
+            # Repeats of the form 'Rows x - y: Repeat rows a and b'
+            parsed_rows = []
+            for i in range(ref_start, ref_end + 1):
+                row_number = pattern_tree.next_row_number + i - ref_start
+                parsed_rows.append(Reference(pattern_tree.get_row(i), row_number))
             return parsed_rows
-        
+
+        repeat_start = nums_before[0]
         parsed_rows = [Reference(pattern_tree.get_row(i)) for i in range(ref_start, ref_end + 1)]
-        return Repeat(parsed_rows, repeat_start, num_in_repeat/num_in_ref)
-    
-    elif len(nums_before) == 1 and nums_after[-1] - nums_after[0] + 1 == nums_before[0]:
-        ref_start, ref_end = nums_after[0], nums_after[-1]
-        times = nums_before[0]/(ref_end - ref_start + 1)
-        if times == 1:
-            parsed_rows = [Reference(pattern_tree.get_row(i), pattern_tree.next_row_number + i - ref_start) for i in range(ref_start, ref_end + 1)]
-            return parsed_rows
-
-        repeated_rows = [Reference(pattern_tree.get_row(i)) for i in range(ref_start, ref_end + 1)]
-        return Repeat(repeated_rows, pattern_tree.next_row_number - nums_before[0], times)
-
-    elif len(nums_before) == 0 and len(nums_after) == 2:
-        ref_start, ref_end = nums_after[0], nums_after[-1]
-        repeated_rows = [Reference(pattern_tree.get_row(i)) for i in range(ref_start, ref_end + 1)]
-        return [Repeat(repeated_rows, ref_start), Annotation(line[line.index('for') :].strip('.;,:'))]
+        return Repeat(parsed_rows, repeat_start, times)
 
     return Repeat([Annotation(line)], pattern_tree.next_row_number)
     
 def parse_repeat_every_other(line, match):
-    # TODO: add rs/ws
-    header, body = line[:line.index(':')], line[line.index(':') + 1 :].strip('.,:;')
-    number = find_all_nums(header)[0]
-    row = Row([Annotation(body)], number)
+    which_rows = line[:line.index(':')]
+    instructions = line[line.index(':') + 1 :].strip(CHARS_TO_STRIP)
+
+    number = find_first_num(which_rows)
+    row = Row([Annotation(instructions)], number)
 
     if 'odd' in line:
         return Repeat([row], row.number, 'odd')
@@ -184,7 +188,8 @@ def parse_repeat_every_other(line, match):
         return Repeat([row], row.number, 'RS')
     if 'ws' in line or 'wrong side' in line:
         return Repeat([row], row.number, 'WS')
-    return Repeat([Annotation(line)], row.number)
+
+    raise Exception('Failed to parse as repeated on every other row: ' + line)
 
 def unroll():
     pass
@@ -194,9 +199,6 @@ def expand_reference():
 
 def find_all_nums(line):
     nums = [num for num in line.replace('-', ' ').split(' ') if re.search('\d+', num)]
-    # removes curly quote
-    # TODO: remove not-curly quote and inches etc.
-    nums = [num for num in nums if '\xe2\x80\x9d' not in num]
     nums = [int(''.join([char for char in num if char.isdigit()])) for num in nums]
     return nums
 
