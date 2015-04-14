@@ -1,6 +1,6 @@
 from os.path import join
 import re
-from sys import path
+from sys import path, argv
 
 path.append(join('.', 'classes'))
 from annotation import *
@@ -211,11 +211,9 @@ def find_first_num(line):
     raise Exception('Line does not contain number:', line)
 
 if __name__ == '__main__':
-    # pat = open('tests/test_files/scarf-beginner.txt', 'r')
-    # pat = open('tests/test_files/scarf-intermediate.txt', 'r')
-    # pat = open('tests/test_files/scarf-advanced.txt', 'r')
-    # pat_lines = pat.read()
-    # pat.close()
-    # print pat_lines
-    # TODO: take file specified by command line arg
-    parse(pat_lines)
+    if len(argv) != 2:
+        raise Exception('knitparser must be called with the name of a pattern file to read')
+    pat = open(argv[1])
+    pat_lines = pat.read()
+    pat.close()
+    print parse(pat_lines)
