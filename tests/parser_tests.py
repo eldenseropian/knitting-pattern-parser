@@ -102,7 +102,7 @@ class TestParser(unittest.TestCase):
             Repeat([Annotation('From here, rep Rows 11 - 34 for Pat St until piece measures approximately 70" from beg, end on Row 16 of Pat St. Rep Rows 15 and 16 once more.')], 35),
             Reference(row11, 1),
             Reference(row12, 2),
-            Row([Annotation('With A, knit. Using A, bind off.')], 3),
+            Annotation('Following Row: With A, knit. Using A, bind off.'),
             Annotation('Finishing'),
             Annotation('Weave in all ends.'),
             Annotation('Side Edgings: With RS facing, using crochet hook and A, work in sc along each side edge of scarf.')

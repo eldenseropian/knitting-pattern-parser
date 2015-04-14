@@ -17,14 +17,14 @@ class TestInRowRepeatParsing(unittest.TestCase):
             InRowRepeat(Annotation('[p1, k2tog, yo, p1], ssk-L-pnso-R, k5, yo, k1, yo, k3, yo, k1, yo, k2, sl 1-k2tog-psso'), 'last 4 sts'),
             InRowRepeat(Annotation('4st panel'))
         ], 1)
-        parsed_tree = knitparser.parse_in_row_repeat(pattern, re.match(knitparser.IN_ROW_REPEAT_REGEX, pattern, re.IGNORECASE))
+        parsed_tree = knitparser.parse_row(pattern)
 
         self.assertEqual(tree, parsed_tree)
 
     def test_rep(self):
         pattern = 'Row 2: *K2tog, yo, rep from * across; end k1.'
         tree = Row([InRowRepeat(Annotation('K2tog, yo'), 'across'), Annotation('end k1')], 2)
-        parsed_tree = knitparser.parse_in_row_repeat(pattern, re.match(knitparser.IN_ROW_REPEAT_REGEX, pattern, re.IGNORECASE))
+        parsed_tree = knitparser.parse_row(pattern)
         self.assertEqual(tree, parsed_tree)
 
 if __name__ == '__main__':
