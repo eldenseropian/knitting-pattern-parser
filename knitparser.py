@@ -351,4 +351,7 @@ if __name__ == '__main__':
     pat = open(argv[1])
     pat_lines = pat.read()
     pat.close()
-    print parse(pat_lines)
+    parsed = parse(pat_lines)
+    # TODO: decide on __str__ standard
+    import xml.dom.minidom
+    print xml.dom.minidom.parseString(parsed.__str__().replace('\n', '').replace('&', '&amp;')).toprettyxml(indent='    ')
