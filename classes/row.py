@@ -16,16 +16,18 @@ class Row:
         """
 
         if type(components) is not list:
-            raise Exception('Components must be a list.')
+            raise TypeError('Components must be a list.')
         if len(components) == 0:
-            raise Exception('Components must not be empty.')
+            raise ValueError('Components must not be empty.')
         for component in components:
             if not is_valid_row_component(component):
-                raise Exception('Each component of a Row must be an Annotation or InRowRepeat.')
+                raise TypeError('Each component of a Row must be an Annotation or InRowRepeat.')
+
         if type(number) is not int:
-            raise Exception('Row numbers must be integers.')
+            raise TypeError('Row numbers must be integers.')
+
         if side is not None and side != 'RS' and side != 'WS':
-            raise Exception('Side must be \'RS\' or \'WS\'.')
+            raise ValueError('Side must be \'RS\' or \'WS\'.')
 
         self.components = components
         self.number = number

@@ -12,9 +12,9 @@ class InRowRepeat:
         """
 
         if not is_annotation(annotation):
-            raise Exception('Repeated sections within Rows must be Annotations.')
+            raise TypeError('Repeated sections within Rows must be Annotations.')
         if until is not None and type(until) != str:
-            raise Exception('Until must be a string.')
+            raise TypeError('Until must be a string.')
 
         self.annotation = annotation
         self.until = until

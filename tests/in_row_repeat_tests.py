@@ -9,8 +9,17 @@ from pattern import *
 sys.path.append(os.path.join('..', ''))
 import knitparser
 
+class TestIllegalInitialization(unittest.TestCase):
+    """Test in-row repeat constructor constraints."""
+
+    def test_initialize_with_non_annotation(self):
+        self.assertRaises(TypeError, InRowRepeat, 'Test Row')
+
+    def test_intialize_with_non_string_until(self):
+        self.assertRaises(TypeError, InRowRepeat, Annotation('Test Row'), 5)
+
 class TestInRowRepeatParsing(unittest.TestCase):
-#TODO: illegal init
+
     def test_repeat(self):
         pattern = 'Row 1: *[p1, k2tog, yo, p1], ssk-L-pnso-R, k5, yo, k1, yo, k3, yo, k1, yo, k2, sl 1-k2tog-psso. Repeat from * to last 4 sts, repeat 4st panel.'
         tree = Row([

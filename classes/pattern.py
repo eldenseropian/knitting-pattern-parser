@@ -18,8 +18,10 @@ class Pattern:
         next_row_number -- the number to give the next parsed row
         """
 
-        if type(title) is not str or not title.strip() :
-            raise Exception('Title must be a non-empty string.')
+        if type(title) is not str:
+            raise TypeError('Title must be a non-empty string.')
+        if not title.strip():
+            raise ValueError('Title must be a non-empty string.')
 
         self.title = title
         self.components = []
@@ -93,9 +95,9 @@ class Pattern:
 
         row_to_get = None
 
-        if number % 2 == 1 and 'odd' in self._rows:
+        if 'odd' in self._rows and number % 2 == 1:
             row_to_get = 1
-        if number % 2 == 0 and 'even' in self._rows:
+        if 'even' in self._rows and number % 2 == 0:
             row_to_get = 2
 
         if row_to_get is not None:

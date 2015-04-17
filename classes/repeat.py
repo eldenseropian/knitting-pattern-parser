@@ -18,16 +18,22 @@ class Repeat:
         """
 
         if type(start) is not int:
-            raise Exception('Start row number must be an integer.')
+            raise TypeError('Start row number must be an integer.')
+        if start <= 0:
+            raise ValueError('Start row number must be positive.')
+
         if times is not None and type(times) is not int and type(times) is not str:
-            raise Exception('Number of times to repeat must be an integer or string.')
+            raise TypeError('Number of times to repeat must be an integer or string.')
+        if type(times) is int and times <= 0:
+            raise ValueError('Number of times to repeat must be positive.')
+
         if type(components) is not list:
-            raise Exception('Components must be a list.')
+            raise TypeError('Components must be a list.')
         if len(components) == 0:
-            raise Exception('Components must not be empty.')
+            raise ValueError('Components must not be empty.')
         for component in components:
             if not is_valid_component(component):
-                raise Exception('Each component of a Repeat must be an Annotation, Reference, or Row.')
+                raise TypeError('Each component of a Repeat must be an Annotation, Reference, or Row.')
 
         self.components = components
         self.start = start

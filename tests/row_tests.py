@@ -13,16 +13,22 @@ class TestIllegalInitialization(unittest.TestCase):
     """Test row constructor constraints."""
 
     def test_initialize_empty_list(self):
-        self.assertRaises(Exception, Row, [], 2)
+        self.assertRaises(ValueError, Row, [], 2)
 
     def test_initialize_with_non_list(self):
-        self.assertRaises(Exception, Row, 'cat', 2)
+        self.assertRaises(TypeError, Row, 'cat', 2)
 
     def test_initialize_with_non_number(self):
         self.assertRaises(Exception, Row, [Annotation('cat')], 'cat')
 
     def test_initialize_with_list_of_non_annotations(self):
-        self.assertRaises(Exception, Row, ['cat', 'dog'], 2)
+        self.assertRaises(TypeError, Row, ['cat', 'dog'], 2)
+
+    def test_initialize_with_not_str_side(self):
+        self.assertRaises(ValueError, Row, [Annotation('cat')], 2, 2)
+
+    def test_initialize_with_illegal_str_side(self):
+        self.assertRaises(ValueError, Row, [Annotation('cat')], 2, 'cat')
 
 class TestUnitRowParsing(unittest.TestCase):
     """Test parsing individual rows outside of the context of a pattern."""

@@ -10,8 +10,34 @@ sys.path.append(os.path.join('..', ''))
 import knitparser
 
 class TestIllegalInitialization(unittest.TestCase):
-    pass
-    #TODO
+    """Test repeat constructor constraints."""
+
+    def test_initialize_with_non_list(self):
+        self.assertRaises(TypeError, Repeat, 2, 1)
+
+    def test_initialize_with_empty_list(self):
+        self.assertRaises(ValueError, Repeat, [], 1)
+
+    def test_intialize_with_list_with_illegal_components(self):
+        self.assertRaises(TypeError, Repeat, [Annotation('yay'), 'boo'], 1)
+
+    def test_initialize_with_non_int_start(self):
+        self.assertRaises(TypeError, Repeat, [Annotation('yay')], 'cat')
+
+    def test_intialize_with_negative_start(self):
+        self.assertRaises(ValueError, Repeat, [Annotation('yay')], -5)
+
+    def test_intialize_with_zero_start(self):
+        self.assertRaises(ValueError, Repeat, [Annotation('yay')], 0)
+
+    def test_initialize_with_non_int_or_string_times(self):
+        self.assertRaises(TypeError, Repeat, [Annotation('yay')], 1, Annotation('boo'))
+
+    def test_intialize_with_zero_times(self):
+        self.assertRaises(ValueError, Repeat, [Annotation('yay')], 1, 0)
+
+    def test_intialize_with_negative_times(self):
+        self.assertRaises(ValueError, Repeat, [Annotation('yay')], 1, -5)
 
 class TestRowRepeatParsing(unittest.TestCase):
 
