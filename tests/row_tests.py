@@ -9,84 +9,82 @@ from pattern import *
 sys.path.append(os.path.join('..', ''))
 import knitparser
 
-class TestIllegalInitialization(unittest.TestCase):
+class TestIllegalRowInitialization(unittest.TestCase):
     """Test row constructor constraints."""
 
     def test_initialize_empty_list(self):
         self.assertRaises(ValueError, Row, [], 2)
 
     def test_initialize_with_non_list(self):
-        self.assertRaises(TypeError, Row, 'cat', 2)
+        self.assertRaises(TypeError, Row, 'Knit', 2)
 
     def test_initialize_with_non_number(self):
-        self.assertRaises(Exception, Row, [Annotation('cat')], 'cat')
+        self.assertRaises(Exception, Row, [Annotation('Knit')], 'Knit')
 
     def test_initialize_with_list_of_non_annotations(self):
-        self.assertRaises(TypeError, Row, ['cat', 'dog'], 2)
+        self.assertRaises(TypeError, Row, ['Knit', 'Purl'], 2)
 
     def test_initialize_with_not_str_side(self):
-        self.assertRaises(ValueError, Row, [Annotation('cat')], 2, 2)
+        self.assertRaises(ValueError, Row, [Annotation('Knit')], 2, 2)
 
     def test_initialize_with_illegal_str_side(self):
-        self.assertRaises(ValueError, Row, [Annotation('cat')], 2, 'cat')
+        self.assertRaises(ValueError, Row, [Annotation('Knit')], 2, 'Knit')
 
-class TestUnitRowParsing(unittest.TestCase):
+class TestRowFunctions(unittest.TestCase):
+    """Test the functions of the row class."""
+
+    def setUp(self):
+        self.annotation_1 = Annotation('Knit.')
+        self.test_row_1 = Row([self.annotation_1], 1, 'RS')
+
+        self.annotation_2 = Annotation('Purl.')
+        self.in_row_repeat = InRowRepeat(Annotation('K1, P1.'))
+        self.test_row_2 = Row([self.annotation_2, self.in_row_repeat], 2)
+
+    def test_str(self):
+        expected_str = '<row number="1" side="RS">' + self.annotation_1.__str__() + '</row>'
+        self.assertEquals(expected_str, self.test_row_1.__str__())
+
+        expected_str = '<row number="2">' + self.annotation_2.__str__() + self.in_row_repeat.__str__() + '</row>'
+        self.assertEquals(expected_str, self.test_row_2.__str__())
+
+    def test_eq(self):
+        self.assertTrue(self.test_row_1 == self.test_row_1)
+        self.assertTrue(self.test_row_1 == Row([self.annotation_1], 1, 'RS'))
+        self.assertFalse(self.test_row_1 == self.test_row_2)
+
+class TestRowParsing(unittest.TestCase):
     """Test parsing individual rows outside of the context of a pattern."""
 
     def test_first_row(self):
-        pattern = 'Row 1: Ooh here is a row!'
-        row = Row([Annotation('Ooh here is a row!')], 1)
+        pattern = 'Row 1: Knit 7.'
+        row = Row([Annotation('Knit 7.')], 1)
+        self.assertEquals(row, knitparser.parse_row(pattern))
+
+        pattern = 'Round 1: Knit 7.'
+        row = Row([Annotation('Knit 7.')], 1)
         self.assertEquals(row, knitparser.parse_row(pattern))
 
     def test_nth_row(self):
-        pattern = 'Row 5: Ooh here is a row!'
-        row = Row([Annotation('Ooh here is a row!')], 5)
+        pattern = 'Row 5: P3, K4'
+        row = Row([Annotation('P3, K4')], 5)
         self.assertEquals(row, knitparser.parse_row(pattern))
 
-    def test_first_round(self):
-        pattern = 'Round 1: Ooh here is a row!'
-        row = Row([Annotation('Ooh here is a row!')], 1)
+        pattern = 'Round 25: P3, K4'
+        row = Row([Annotation('P3, K4')], 25)
         self.assertEquals(row, knitparser.parse_row(pattern))
 
-    def test_nth_round(self):
-        pattern = 'Round 25: Ooh here is a row!'
-        row = Row([Annotation('Ooh here is a row!')], 25)
+    def test_row_with_multiple_components(self):
+        pattern = 'Row 3: K2, *K1, P1*, rep between * to end.'
+        row = Row([Annotation('K2'), InRowRepeat(Annotation('K1, P1'), 'end')], 3)
         self.assertEquals(row, knitparser.parse_row(pattern))
 
-class TestE2ERowParsing(unittest.TestCase):
-    """Test parsing rows within the context of a pattern."""
+    def test_row_with_side(self):
+        pattern = 'Row 5[WS]: Knit.'
+        row = Row([Annotation('Knit.')], 5, 'WS')
 
-    def setUp(self):
-        self.tree = Pattern('Test Pattern')
-        self.tree += Annotation('Blah blah this is a pattern.')
-        self.tree += Row([Annotation('Ooh here is a row!')], 1)
-        self.tree += Row([Annotation('Wow, another one!')], 2)
-
-    def test_no_rows(self):
-        pattern = 'Test Pattern\nBlah blah this is a pattern.\n\nWoo more pattern.'
-        
-        tree = Pattern('Test Pattern')
-        tree += Annotation('Blah blah this is a pattern.')
-        tree += Annotation('Woo more pattern.')
-        
-        self.assertEqual(tree, knitparser.parse(pattern))
-
-    def test_one_row(self):
-        pattern = 'Test Pattern\nBlah blah this is a pattern.\nRow 1: Ooh here is a row!'
-        
-        tree = Pattern('Test Pattern')
-        tree += Annotation('Blah blah this is a pattern.')
-        tree += Row([Annotation('Ooh here is a row!')], 1)
-
-        self.assertEqual(tree, knitparser.parse(pattern))
-
-    def test_multiple_rows(self):
-        pattern = 'Test Pattern\nBlah blah this is a pattern.\nRow 1: Ooh here is a row!\nRow 2: Wow, another one!'
-        self.assertEqual(self.tree, knitparser.parse(pattern))
-
-    def test_multiple_rounds(self):
-        pattern = 'Test Pattern\nBlah blah this is a pattern.\nRound 1: Ooh here is a row!\nRound 2: Wow, another one!'
-        self.assertEqual(self.tree, knitparser.parse(pattern))
+        pattern = 'Row 6(RS): Purl.'
+        row = Row([Annotation('Purl.')], 6, 'RS')
 
 if __name__ == '__main__':
     unittest.main()

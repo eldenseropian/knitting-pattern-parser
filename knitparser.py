@@ -8,14 +8,14 @@ from pattern import *
 from repeat import *
 from row import *
 
-CHARS_TO_STRIP = '.,;: '
+CHARS_TO_STRIP = '.,;:* '
 
 ####################
 # Regex's for rows #
 ####################
 
 ROW_REGEX = '(row|round) \d+( [\(\[](ws|rs)[\)\]])?:'
-IN_ROW_REPEAT_REGEX = '.*\*.*rep(eat)? from \*'
+IN_ROW_REPEAT_REGEX = '.*\*.*rep(eat)?.*\*'
 
 #######################
 # Regex's for repeats #

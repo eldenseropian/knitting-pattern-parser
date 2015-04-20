@@ -39,7 +39,7 @@ class Row:
         row_str = '<row number="' + str(self.number)
         if self.side:
             row_str += '" side="' + self.side
-        row_str += '">\n' + '\n'.join([component.__str__() for component in self.components]) + '\n</row>'
+        row_str += '">' + ''.join([component.__str__() for component in self.components]) + '</row>'
         return row_str
 
     def __eq__(self, other):
