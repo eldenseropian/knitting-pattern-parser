@@ -9,7 +9,7 @@ from pattern import *
 sys.path.append(os.path.join('..', ''))
 import knitparser
 
-class TestIllegalInitialization(unittest.TestCase):
+class TestRepeatInitialization(unittest.TestCase):
     """Test repeat constructor constraints."""
 
     def test_initialize_with_non_list(self):
@@ -39,7 +39,7 @@ class TestIllegalInitialization(unittest.TestCase):
     def test_intialize_with_negative_times(self):
         self.assertRaises(ValueError, Repeat, [Annotation('yay')], 1, -5)
 
-class TestRowRepeatParsing(unittest.TestCase):
+class TestRepeatParsing(unittest.TestCase):
 
     def setUp(self):
         pass

@@ -9,7 +9,7 @@ from pattern import *
 sys.path.append(os.path.join('..', ''))
 import knitparser
 
-class TestIllegalRowInitialization(unittest.TestCase):
+class TestRowInitialization(unittest.TestCase):
     """Test row constructor constraints."""
 
     def test_initialize_empty_list(self):

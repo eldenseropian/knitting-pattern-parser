@@ -45,10 +45,9 @@ class Pattern:
     def __str__(self):
         """Return an XML representation of the pattern."""
 
-        pattern_str = '<pattern>\n<title>' + self.title + '</title>'
-        if len(self.components) > 0:
-            pattern_str += '\n' + '\n'.join([component.__str__() for component in self.components])
-        pattern_str += '\n</pattern>'
+        pattern_str = '<pattern title="' + self.title + '">'
+        pattern_str += ''.join([component.__str__() for component in self.components])
+        pattern_str += '</pattern>'
         return pattern_str
 
     def __eq__(self, other):
@@ -60,23 +59,6 @@ class Pattern:
 
     def __ne__(self, other):
         return not self.__eq__(other)
-
-    def add_row(self, row):
-        """Add a row to the pattern, indexed by row number.
-
-        If there is already a row with that number in the pattern, add the new row to a list at that index.
-
-        Keyword arguments:
-        row -- the Row to add
-        """
-
-        if row.number in self._rows:
-            if type(self._rows[row.number]) == list:
-                self._rows[row.number].append(row)
-            else:
-                self._rows[row.number] = [self._rows[row.number], row]
-        else:
-            self._rows[row.number] = row
 
     def get_row(self, number):
         """Return the Row or list of Rows with the given number.
@@ -103,7 +85,27 @@ class Pattern:
         if row_to_get is not None:
             return get_single_row(self._rows[row_to_get])
 
+        if number not in self._rows:
+            raise ValueError('Row number ' + str(number) + ' does not exist.')
+
         return get_single_row(self._rows[number])
+
+    def _add_row(self, row):
+        """Add a row to the pattern, indexed by row number.
+
+        If there is already a row with that number in the pattern, add the new row to a list at that index.
+
+        Keyword arguments:
+        row -- the Row to add
+        """
+
+        if row.number in self._rows:
+            if type(self._rows[row.number]) == list:
+                self._rows[row.number].append(row)
+            else:
+                self._rows[row.number] = [self._rows[row.number], row]
+        else:
+            self._rows[row.number] = row
 
     def _add_component(self, component):
         """Add a component to the pattern.
@@ -120,7 +122,7 @@ class Pattern:
         self.components.append(component)
 
         if component.__class__ in [Row, InRowRepeat, Reference]:
-            self.add_row(component)
+            self._add_row(component)
             self.next_row_number = component.number + 1
 
         elif is_and_all_repeat(component):
@@ -129,7 +131,7 @@ class Pattern:
             if 'odd' in self._rows:
                 del self._rows['odd']
             self._rows[component.times] = True # indicate that all even or all odd rows are the same
-            self.add_row(component.components[0])
+            self._add_row(component.components[0])
             self.next_row_number = component.components[0].number + 1
 
         elif component.__class__ == Repeat:
@@ -161,8 +163,15 @@ def is_annotation(instance):
 def is_equal_pairwise(components1, components2):
     """Return whether two lists of components are the same via pairwise comparison."""
 
+    if type(components1) != list or type(components2) != list:
+        raise TypeError('Components must be lists.')
+
     if len(components1) != len(components2):
         return False
+
+    if len(components1) == 0:
+        return True
+
     return reduce(lambda x, y: x and y, [components1[i] == components2[i] for i in range(len(components1))])
 
 from annotation import *
