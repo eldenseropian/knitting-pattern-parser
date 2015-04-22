@@ -25,7 +25,7 @@ class InRowRepeat:
         repeat_str = '<repeat'
         if self.until:
             repeat_str += ' until="' + self.until + '"'
-        repeat_str += '>\n' + self.annotation.__str__() + '\n</repeat>'
+        repeat_str += '>' + self.annotation.__str__() + '</repeat>'
         return repeat_str
 
     def __eq__(self, other):
