@@ -21,8 +21,14 @@ IN_ROW_REPEAT_REGEX = '.*\*.*rep(eat)?.*\*'
 # Regex's for repeats #
 #######################
 
-REPEAT_ROWS_REGEX = 'rep(eat)? rows'
+# 1 or 2 numbers before repeat, two numbers after repeat
+NOT_DIGITS = '[^\d]*'
+_BEFORE_REPEAT = '^' + NOT_DIGITS + '\d*' + NOT_DIGITS + '\d+' + NOT_DIGITS
+_AFTER_REPEAT = NOT_DIGITS + '\d+' + NOT_DIGITS + '\d+' + NOT_DIGITS + '$'
+REPEAT_ROWS_REGEX = _BEFORE_REPEAT + 'rep(eat)? rows' + _AFTER_REPEAT
+
 EVERY_OTHER_REGEX = 'row \d+ and all'
+
 REPEAT_REGEX = REPEAT_ROWS_REGEX + '|' + EVERY_OTHER_REGEX
 
 
@@ -203,22 +209,19 @@ def parse_repeat_dispatcher(line, pattern_tree):
     if pattern_tree.__class__ is not Pattern:
         raise TypeError('pattern_tree must be a Pattern instance.')
 
-    match = re.search(EVERY_OTHER_REGEX, line, re.IGNORECASE)
-    if match:
-        return parse_repeat_every_other(line, match)
+    if re.search(EVERY_OTHER_REGEX, line, re.IGNORECASE):
+        return parse_repeat_every_other(line)
 
-    match = re.search(REPEAT_ROWS_REGEX, line, re.IGNORECASE)
-    if match:
-        return parse_repeat(line, match, pattern_tree)
+    if re.search(REPEAT_ROWS_REGEX, line, re.IGNORECASE):
+        return parse_repeat(line, pattern_tree)
 
     raise RuntimeError('Failed to parse repeat: ' + line)
 
-def parse_repeat(line, match, pattern_tree):
+def parse_repeat(line, pattern_tree):
     """Parse an instruction to repeat rows that is not in an every-other-row fashion.
 
     Keyword arguments:
     line -- the line to parse (a string)
-    match -- the re.MatchObject returned by matching line with REPEAT_REGEX
     pattern_tree -- the pattern as parse up to line (a Pattern instance)
 
     Returns a Repeat instance.
@@ -228,56 +231,41 @@ def parse_repeat(line, match, pattern_tree):
         raise TypeError('line must be a non-empty string.')
     if not line.strip():
         raise ValueError('line must be a non-empty string.')
-    if match.__class__.__name__ != 'SRE_Match':
-        raise TypeError('match must be an re.MatchObject.')
     if pattern_tree.__class__ is not Pattern:
         raise TypeError('pattern_tree must be a Pattern instance.')
 
-    start, end = match.span()
-    nums_before = _find_all_nums(line[: start])
-    nums_after = _find_all_nums(line[end :])
+    split_index = line.lower().index('rep')
+    nums_before = _find_all_nums(line[: split_index])
+    nums_after = _find_all_nums(line[split_index :])
 
-    if len(nums_before) == 0 and len(nums_after) == 2:
-        # Repeats of the form 'Rep Rows a through b indefinitely'
-        ref_start, ref_end = nums_after
-        parsed_rows = [Reference(pattern_tree.get_row(i)) for i in range(ref_start, ref_end + 1)]
-        instructions_after_repeat = line[line.index('for') :].strip(CHARS_TO_STRIP)
-        return [Repeat(parsed_rows, ref_start), Annotation(instructions_after_repeat)]
-    
-    if len(nums_after) == 2:
-        # Repeats of the form 'Rep Rows a and b over a specified range'
+    ref_start, ref_end = nums_after
+    num_in_ref = ref_end - ref_start + 1
 
-        ref_start, ref_end = nums_after
-        num_in_ref = ref_end - ref_start + 1
+    # Next n rows: Rep Rows a - b
+    num_in_repeat = nums_before[0]
+    if len(nums_before) == 2:
+        # Rows x - y: Rep Rows a - b
+        num_in_repeat = nums_before[1] - nums_before[0] + 1
 
-        # Next n rows: Rep Rows a and b
-        num_in_repeat = nums_before[0]
-        if len(nums_before) == 2:
-            # Rows x - y: Rep Rows a and b
-            num_in_repeat = nums_before[1] - nums_before[0] + 1
+    times = num_in_repeat / num_in_ref
 
-        times = num_in_repeat / num_in_ref
+    if times == 1:
+        # Repeats of the form 'Rows n and n+1: Repeat rows a and b'
+        parsed_rows = []
+        for i in range(ref_start, ref_end + 1):
+            row_number = pattern_tree.next_row_number + i - ref_start
+            parsed_rows.append(Reference(pattern_tree.get_row(i), row_number))
+        return parsed_rows
 
-        if times == 1:
-            # Repeats of the form 'Rows x - y: Repeat rows a and b'
-            parsed_rows = []
-            for i in range(ref_start, ref_end + 1):
-                row_number = pattern_tree.next_row_number + i - ref_start
-                parsed_rows.append(Reference(pattern_tree.get_row(i), row_number))
-            return parsed_rows
+    repeat_start = nums_before[0]
+    parsed_rows = [Reference(pattern_tree.get_row(i)) for i in range(ref_start, ref_end + 1)]
+    return Repeat(parsed_rows, repeat_start, times)
 
-        repeat_start = nums_before[0]
-        parsed_rows = [Reference(pattern_tree.get_row(i)) for i in range(ref_start, ref_end + 1)]
-        return Repeat(parsed_rows, repeat_start, times)
-
-    return Repeat([Annotation(line)], pattern_tree.next_row_number)
-    
-def parse_repeat_every_other(line, match):
+def parse_repeat_every_other(line):
     """Parse an instruction to repeat a row every other row.
 
     Keyword arguments:
     line -- the line to parse (a string)
-    match -- the re.MatchObject returned by matching line with REPEAT_REGEX
 
     Returns a Repeat instance.
     """
@@ -286,8 +274,6 @@ def parse_repeat_every_other(line, match):
         raise TypeError('line must be a non-empty string.')
     if not line.strip():
         raise ValueError('line must be a non-empty string.')
-    if match.__class__.__name__ != 'SRE_Match':
-        raise TypeError('match must be an re.MatchObject.')
 
     which_rows = line[:line.index(':')]
     instructions = line[line.index(':') + 1 :].strip(CHARS_TO_STRIP)
@@ -295,13 +281,14 @@ def parse_repeat_every_other(line, match):
     number = _find_first_num(which_rows)
     row = Row([Annotation(instructions)], number)
 
+    # Case matters: 'ws' will be in most of these lines (from 'rows')
     if 'odd' in line:
         return Repeat([row], row.number, 'odd')
     if 'even' in line:
         return Repeat([row], row.number, 'even')
-    if 'rs' in line or 'right side' in line:
+    if 'RS' in line or 'right side' in line:
         return Repeat([row], row.number, 'RS')
-    if 'ws' in line or 'wrong side' in line:
+    if 'WS' in line or 'wrong side' in line:
         return Repeat([row], row.number, 'WS')
 
     raise Exception('Failed to parse as repeated on every other row: ' + line)
@@ -352,6 +339,5 @@ if __name__ == '__main__':
     pat_lines = pat.read()
     pat.close()
     parsed = parse(pat_lines)
-    # TODO: decide on __str__ standard
     import xml.dom.minidom
-    print xml.dom.minidom.parseString(parsed.__str__().replace('\n', '').replace('&', '&amp;')).toprettyxml(indent='    ')
+    print xml.dom.minidom.parseString(parsed.__str__().replace('&', '&amp;')).toprettyxml(indent='    ')

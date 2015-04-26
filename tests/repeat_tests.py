@@ -39,26 +39,59 @@ class TestRepeatInitialization(unittest.TestCase):
     def test_intialize_with_negative_times(self):
         self.assertRaises(ValueError, Repeat, [Annotation('yay')], 1, -5)
 
-class TestRepeatParsing(unittest.TestCase):
+class TestRepeatFunctions(unittest.TestCase):
+    """Test the functions of the repeat class."""
 
     def setUp(self):
-        pass
+        self.annotation1 = Annotation('Knit 5')
+        self.repeat1 = Repeat([self.annotation1], 1, 3)
 
-    def test_single_repeat(self):
-        pattern = 'Rows 9 and 10: Rep Rows 7 and 8 once more.'
+        self.annotation2 = Annotation('Purl 5')
+        self.repeat2 = Repeat([self.annotation2], 4)
 
-        pattern_tree = Pattern('Test Pattern')
-        pattern_tree += Row([Annotation('a')], 7)
-        pattern_tree += Row([Annotation('a')], 8)
+    def test_str(self):
+        str1 = '<repeat start="1" times="3">' + self.annotation1.__str__() + '</repeat>'
+        self.assertEquals(str1, self.repeat1.__str__())
 
-        tree = [
-            Reference(Row([Annotation('a')], 7)),
-            Reference(Row([Annotation('a')], 8)),
+        str2 = '<repeat start="4">' + self.annotation2.__str__() + '</repeat>'
+        self.assertEquals(str2, self.repeat2.__str__())
+
+    def test_eq(self):
+        self.assertTrue(self.repeat1 == self.repeat1)
+        self.assertTrue(self.repeat1 == Repeat([self.annotation1], 1, 3))
+        self.assertTrue(self.repeat2 == self.repeat2)
+        self.assertTrue(self.repeat2 == Repeat([Annotation('Purl 5')], 4))
+
+        self.assertFalse(self.repeat1 == self.repeat2)
+        self.assertFalse(self.repeat1 == Repeat([self.annotation1], 1))
+
+class TestRepeatParsing(unittest.TestCase):
+    """Test parsing repeats out of the context of a pattern."""
+
+    def setUp(self):
+        self.pattern_tree = Pattern('Test Pattern')
+        self.row7 = Row([Annotation('Knit')], 7)
+        self.row8 = Row([Annotation('Purl')], 8)
+        self.pattern_tree += self.row7
+        self.pattern_tree += self.row8
+
+        self.repeat_one_time_tree = [
+            Reference(self.row7),
+            Reference(self.row8),
         ]
 
-        parsed_tree = knitparser.parse_repeat(pattern, re.search(knitparser.REPEAT_ROWS_REGEX, pattern, re.IGNORECASE), pattern_tree)
+    def test_repeat_one_time(self):
+        pattern = 'Rows 9 and 10: Rep Rows 7 and 8 once more.'
+        parsed_tree = knitparser.parse_repeat(pattern, self.pattern_tree)
+        self.assertEqual(self.repeat_one_time_tree, parsed_tree)
 
-        self.assertEqual(tree, parsed_tree)
+        pattern = 'Rows 23 and 24: Rep Rows 7 and 8.'
+        parsed_tree = knitparser.parse_repeat(pattern, self.pattern_tree)
+        self.assertEqual(self.repeat_one_time_tree, parsed_tree)
+
+        pattern = 'Next 2 Rows: Rep Rows 7 and 8.'
+        parsed_tree = knitparser.parse_repeat(pattern, self.pattern_tree)
+        self.assertEqual(self.repeat_one_time_tree, parsed_tree)
 
     def test_multiple_repeat(self):
         pattern = 'Rows 17 - 22: Rep Rows 15 and 16 three times more.'
@@ -72,8 +105,30 @@ class TestRepeatParsing(unittest.TestCase):
             Reference(Row([Annotation('a')], 16)),
         ], 17, 3)
 
-        parsed_tree = knitparser.parse_repeat(pattern, re.search(knitparser.REPEAT_ROWS_REGEX, pattern, re.IGNORECASE), pattern_tree)
+        parsed_tree = knitparser.parse_repeat(pattern, pattern_tree)
         self.assertEqual(tree, parsed_tree)
+
+    def test_repeat_every_other(self):
+        pattern = 'Row 2 and all even-numbered rows: Purl all sts.'
+        expected_tree = Repeat([Row([Annotation('Purl all sts')], 2)], 2, 'even')
+        parsed_tree = knitparser.parse_repeat_every_other(pattern)
+
+        self.assertEquals(expected_tree, parsed_tree)
+
+        pattern = 'Row 1 and all odd # rows: K2, purl to last two sts, k2.'
+        expected_tree = Repeat([Row([Annotation('K2, purl to last two sts, k2')], 1)], 1, 'odd')
+        parsed_tree = knitparser.parse_repeat_every_other(pattern)
+        self.assertEquals(expected_tree, parsed_tree)
+
+        pattern = 'Row 1 and all wrong side rows: Purl.'
+        expected_tree = Repeat([Row([Annotation('Purl')], 1)], 1, 'WS')
+        parsed_tree = knitparser.parse_repeat_every_other(pattern)
+        self.assertEquals(expected_tree, parsed_tree)
+
+        pattern = 'Row 2 and all RS rows: Knit.'
+        expected_tree = Repeat([Row([Annotation('Knit')], 2)], 2, 'RS')
+        parsed_tree = knitparser.parse_repeat_every_other(pattern)
+        self.assertEquals(expected_tree, parsed_tree)
 
 if __name__ == '__main__':
     unittest.main()

@@ -45,7 +45,7 @@ class Repeat:
         repeat_str = '<repeat start="' + str(self.start)
         if self.times:
             repeat_str += '" times="' + str(self.times)
-        repeat_str += '">\n' + '\n'.join([component.__str__() for component in self.components]) + '\n</repeat>'
+        repeat_str += '">' + ''.join([component.__str__() for component in self.components]) + '</repeat>'
         return repeat_str
 
     def __eq__(self, other):
