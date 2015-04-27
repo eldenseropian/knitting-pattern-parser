@@ -64,11 +64,11 @@ class TestPatternFunctions(unittest.TestCase):
         self.assertTrue(is_valid_component(self.repeat))
 
         self.assertFalse(is_valid_component(self.pattern))
-        self.assertFalse(is_valid_component(InRowRepeat(self.annotation)))
+        self.assertFalse(is_valid_component(InRowRepeat([self.annotation])))
 
     def test_is_valid_row_component(self):
         self.assertTrue(is_valid_row_component(self.annotation))
-        self.assertTrue(is_valid_row_component(InRowRepeat(self.annotation)))
+        self.assertTrue(is_valid_row_component(InRowRepeat([self.annotation])))
 
         self.assertFalse(is_valid_row_component(self.pattern))
         self.assertFalse(is_valid_row_component(self.row))
@@ -83,7 +83,7 @@ class TestPatternFunctions(unittest.TestCase):
         self.assertFalse(is_and_all_repeat(self.repeat))
 
         self.assertFalse(is_and_all_repeat(self.pattern))
-        self.assertFalse(is_and_all_repeat(InRowRepeat(self.annotation)))
+        self.assertFalse(is_and_all_repeat(InRowRepeat([self.annotation])))
         self.assertFalse(is_and_all_repeat(self.row))
         self.assertFalse(is_and_all_repeat(self.reference))
 
@@ -91,7 +91,7 @@ class TestPatternFunctions(unittest.TestCase):
         self.assertTrue(is_annotation(self.annotation))
 
         self.assertFalse(is_annotation(self.pattern))
-        self.assertFalse(is_annotation(InRowRepeat(self.annotation)))
+        self.assertFalse(is_annotation(InRowRepeat([self.annotation])))
         self.assertFalse(is_annotation(self.row))
         self.assertFalse(is_annotation(self.reference))
         self.assertFalse(is_annotation(self.repeat))

@@ -14,8 +14,10 @@ CHARS_TO_STRIP = '.,;:* '
 # Regex's for rows #
 ####################
 
-ROW_REGEX = '(row|round) \d+( [\(\[](ws|rs)[\)\]])?:'
-IN_ROW_REPEAT_REGEX = '.*\*.*rep(eat)?.*\*'
+ROW_REGEX = '(row|round) \d+.*:'
+ASTERISK_REPEAT = '\*.*rep(eat)?.*\*'
+BRACKET_REPEAT = '\[.*\] rep(eat)?'
+IN_ROW_REPEAT_REGEX = ASTERISK_REPEAT + '|' + BRACKET_REPEAT
 
 #######################
 # Regex's for repeats #
@@ -73,11 +75,11 @@ def parse_line(line, pattern_tree):
     if pattern_tree.__class__ is not Pattern:
         raise TypeError('pattern_tree must be a Pattern instance.')
 
-    if re.search(ROW_REGEX, line, re.IGNORECASE):
-        return parse_row(line)
-
     if re.search(REPEAT_REGEX, line, re.IGNORECASE):
         return parse_repeat_dispatcher(line, pattern_tree)
+
+    if re.search(ROW_REGEX, line, re.IGNORECASE):
+        return parse_row(line)
 
     return Annotation(line)
 
@@ -112,7 +114,7 @@ def parse_row(line):
 
     return row
 
-def parse_in_row_repeat(line, row_number, side):
+def parse_in_row_repeat(line, row_number, side=None):
     """Parse a single line that represents a row that contains a repeated section.
 
     Keyword arguments:
@@ -123,74 +125,62 @@ def parse_in_row_repeat(line, row_number, side):
     Returns a Row instance.
     """
 
-    if type(line) is not str:
-        raise TypeError('line must be a non-empty string.')
-    if not line.strip():
-        raise ValueError('line must be a non-empty string.')
-    if type(row_number) is not int:
-        raise TypeError('row_number must be a positive integer.')
-    if row_number <= 0:
-        raise ValueError('row_number must be a positive integer.')
-    if side not in ['RS', 'WS', None]:
-        raise ValueError('side must be one of ["RS", "WS", None].')
+    line = line.replace(';', ',') #TODO: handle better
 
-    row_components = []
+    match = re.search(IN_ROW_REPEAT_REGEX, line, re.IGNORECASE)
+    if not match:
+        return Annotation(line.strip(CHARS_TO_STRIP))
 
-    instructions_before_repeat = line[: line.index('*')].strip(CHARS_TO_STRIP)
-    if instructions_before_repeat:
-        row_components.append(Annotation(instructions_before_repeat))
+    if re.search(ASTERISK_REPEAT, line, re.IGNORECASE):
+        start = match.span()[0]
+        components = []
+        if start != 0:
+            components.append(parse_in_row_repeat(line[:start], row_number, side))
+            line = line[start:]
 
-    rep_start = line.index('*') + 1
-    rep_end = line.lower().index('rep')
-    repeated_section = line[rep_start : rep_end].strip(CHARS_TO_STRIP)
+        end = line.lower().index('rep')
+        # TODO: delims standardization
+        true_end = len(line)
+        if ',' in line[end:]:
+            true_end = len(line[:end]) + line[end:].index(',')
+        until = None
+        repeat_until = line[end:true_end].strip(CHARS_TO_STRIP)
+        if 'across' in line[end:true_end]:
+            until = 'across'
+        elif 'to' in repeat_until:
+            until = repeat_until[repeat_until.index('to') + 3 :]
+        elif 'more' in repeat_until:
+            until = repeat_until[repeat_until.index('*') :].strip(CHARS_TO_STRIP)
 
-    instructions_after_repeat = line[line.rindex('*') + 1 :].strip(CHARS_TO_STRIP)
-    final_component = None
-    until = None
-
-    if instructions_after_repeat.startswith('to'):
-        until = instructions_after_repeat[len('to') :]
-        if 'repeat' in until:
-            split_index = until.index('repeat')
-
-            instructions_after_repeat = until[split_index + len('repeat') :]
-            instructions_after_repeat = instructions_after_repeat.strip(CHARS_TO_STRIP)
-
-            until = until[: split_index]
-
-            final_component = InRowRepeat(Annotation(instructions_after_repeat))
-
-    elif instructions_after_repeat.startswith('across'):
-        until = 'across'
-
-        instructions_after_repeat = instructions_after_repeat[len('across') :]
-        instructions_after_repeat = instructions_after_repeat.lstrip(CHARS_TO_STRIP)
-        instructions_after_repeat = instructions_after_repeat.strip(CHARS_TO_STRIP)
-
-        final_component = Annotation(instructions_after_repeat)
-
-    elif 'more' in instructions_after_repeat:
-        split_index = instructions_after_repeat.index('more') + len('more')
-
-        until = instructions_after_repeat[: split_index]
-
-        instructions_after_repeat = instructions_after_repeat[split_index :]
-        instructions_after_repeat = instructions_after_repeat.lstrip(CHARS_TO_STRIP)
-        instructions_after_repeat = instructions_after_repeat.strip(CHARS_TO_STRIP)
-
-        final_component = Annotation(instructions_after_repeat)
-
+        inner = parse_in_row_repeat(line[1: end], row_number, side)
+        if type(inner) == list:
+            components.append(InRowRepeat(inner, until))
+        else:
+            components.append(InRowRepeat([inner], until))
+        if len(line[true_end:].strip(CHARS_TO_STRIP)) > 0:
+            components.append(parse_in_row_repeat(line[true_end:].strip(CHARS_TO_STRIP), row_number, side))
+        return Row(components, row_number, side)
     else:
-        until = instructions_after_repeat
+        # bracket repeat
+        start = match.span()[0]
+        components = []
+        if start != 0:
+            components.append(parse_in_row_repeat(line[:start], row_number, side))
+            line = line[start:]
 
-    until = until.strip(CHARS_TO_STRIP)
+        end = line.index('] rep') + 5
+        if line[end:].startswith('eat'):
+            end +=3
 
-    row_components.append(InRowRepeat(Annotation(repeated_section), until))
-
-    if final_component:
-        row_components.append(final_component)
-
-    return Row(row_components, row_number, side)
+        true_end = len(line)
+        if ',' in line[end:]:
+            true_end = len(line[:end]) + line[end:].index(',')
+        until = line[end:true_end].strip(CHARS_TO_STRIP)
+        inner = parse_in_row_repeat(line[start+1: line.index(']')], row_number, side)
+        components.append(InRowRepeat([inner], until))
+        if len(line[true_end:]) != 0:
+            components.append(parse_in_row_repeat(line[true_end:].strip(CHARS_TO_STRIP), row_number, side))
+        return Row(components, row_number, side)
 
 def parse_repeat_dispatcher(line, pattern_tree):
     """Parse an instruction to repeat rows.

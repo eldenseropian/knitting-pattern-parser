@@ -38,7 +38,7 @@ class TestRowFunctions(unittest.TestCase):
         self.test_row_1 = Row([self.annotation_1], 1, 'RS')
 
         self.annotation_2 = Annotation('Purl.')
-        self.in_row_repeat = InRowRepeat(Annotation('K1, P1.'))
+        self.in_row_repeat = InRowRepeat([Annotation('K1, P1.')])
         self.test_row_2 = Row([self.annotation_2, self.in_row_repeat], 2)
 
     def test_str(self):
@@ -76,7 +76,7 @@ class TestRowParsing(unittest.TestCase):
 
     def test_row_with_multiple_components(self):
         pattern = 'Row 3: K2, *K1, P1*, rep between * to end.'
-        row = Row([Annotation('K2'), InRowRepeat(Annotation('K1, P1'), 'end')], 3)
+        row = Row([Annotation('K2'), InRowRepeat([Annotation('K1, P1')], 'end')], 3)
         self.assertEquals(row, knitparser.parse_row(pattern))
 
     def test_row_with_side(self):

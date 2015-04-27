@@ -10,7 +10,7 @@ class Row:
         """Create a new row.
 
         Keyword arguments:
-        components -- a list of annotations that comprise the row
+        components -- a list of components that comprise the row
         number -- the row number (an integer)
         side -- either 'RS' or 'WS' (right side/wrong side)
         """
