@@ -131,65 +131,53 @@ def parse_in_row_repeat(line):
     if not match:
         return [Annotation(line.strip(CHARS_TO_STRIP))]
 
-    if re.search(ASTERISK_REPEAT, line, re.IGNORECASE):
-        start = match.span()[0]
-        components = []
-        if start != 0:
-            for component in parse_in_row_repeat(line[:start]):
-                components.append(component)
-            line = line[start:]
+    start = match.span()[0]
+    components = []
+    if start != 0:
+        for component in parse_in_row_repeat(line[:start]):
+            components.append(component)
+        line = line[start:]
 
-        index_of_last_asterisk = line.rindex('*')
-        between_asterisks = line[line.index('*') : line.rindex('*')]
-        end = line[:index_of_last_asterisk].lower().rindex('rep')
-        # TODO: delims standardization
-        true_end = len(line)
-        if ',' in line[end:]:
-            true_end = len(line[:end]) + line[end:].index(',')
-        until = None
-        repeat_until = line[end:true_end].strip(CHARS_TO_STRIP)
-        if 'across' in line[end:true_end]:
+    asterisk = False
+    if re.search(ASTERISK_REPEAT, line, re.IGNORECASE):
+        asterisk = True
+        # Asterisk repeats cannot have siblings
+        # Bracket repeats cannot have nesting
+
+    end = None
+    if asterisk:
+        end = line[:line.rindex('*')].lower().rindex('rep')
+    else:
+        end = line.index(']')
+
+    # TODO: delims standardization
+    true_end = len(line)
+    if ',' in line[end:]:
+        true_end = len(line[:end]) + line[end:].index(',')
+
+    if asterisk:
+        until = line[end:true_end].strip(CHARS_TO_STRIP)
+        if 'across' in until:
             until = 'across'
-        elif 'to' in repeat_until:
-            until = repeat_until[repeat_until.index('to') + 3 :]
-        elif 'more' in repeat_until:
-            until = repeat_until[repeat_until.index('*') :].strip(CHARS_TO_STRIP)
+        elif 'to' in until:
+            until = until[until.index('to') + 3 :]
+        elif 'more' in until:
+            until = until[until.index('*') :].strip(CHARS_TO_STRIP)
         if until is not None and not until.strip():
             until = None
-
-        inner = parse_in_row_repeat(line[1: end])
-        components.append(InRowRepeat(inner, until))
-
-        if len(line[true_end:].strip(CHARS_TO_STRIP)) > 0:
-            for component in parse_in_row_repeat(line[true_end:].strip(CHARS_TO_STRIP)):
-                components.append(component)
-        return components
     else:
-        # bracket repeat
-        start = match.span()[0]
-        components = []
-        if start != 0:
-            for component in parse_in_row_repeat(line[:start]):
-                components.append(component)
-            line = line[start:]
+        strip = len(' rep')
+        if 'eat' in line[end:]:
+            strip += 4
+        until = line[end + strip:true_end].strip(CHARS_TO_STRIP)
+        
+    inner = parse_in_row_repeat(line[1: end])
+    components.append(InRowRepeat(inner, until))
 
-        end = line.index('] rep') + 5
-        if line[end:].startswith('eat'):
-            end +=3
-
-        true_end = len(line)
-        if ',' in line[end:]:
-            true_end = len(line[:end]) + line[end:].index(',')
-        until = line[end:true_end].strip(CHARS_TO_STRIP)
-
-        inner = parse_in_row_repeat(line[1: line.index(']')])
-        components.append(InRowRepeat(inner, until))
-        if len(line[true_end:]) != 0:
-            for component in parse_in_row_repeat(line[true_end:].strip(CHARS_TO_STRIP)):
-                components.append(component)
-
-
-        return components
+    if len(line[true_end:].strip(CHARS_TO_STRIP)) > 0:
+        for component in parse_in_row_repeat(line[true_end:].strip(CHARS_TO_STRIP)):
+            components.append(component)
+    return components
 
 def parse_repeat_dispatcher(line, pattern_tree):
     """Parse an instruction to repeat rows.
