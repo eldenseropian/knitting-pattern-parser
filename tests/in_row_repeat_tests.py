@@ -18,6 +18,9 @@ class TestInRowRepeatInitialization(unittest.TestCase):
     def test_intialize_with_non_string_until(self):
         self.assertRaises(TypeError, InRowRepeat, [Annotation('Test Row')], 5)
 
+    def test_initialize_with_empty_until(self):
+        self.assertRaises(ValueError, InRowRepeat, [Annotation('Test Row')], '')
+
 class TestInRowRepeatFunctions(unittest.TestCase):
     """Test the functions of the in-row repeat class."""
 
@@ -104,18 +107,39 @@ class TestInRowRepeatParsing(unittest.TestCase):
         self.assertEquals(tree, parsed_tree)
 
     def test_multiple_in_row(self):
-        pass
-    # def test_nested(self):
-    #     pattern = 'Crown round 1 (dark yarn): *[k2tog, sl 1, yo] repeat 4 times, k2tog, k3tog (the next sl stitch, yo, and the following stitch - knit all 3 stitches through the front of their loops, starting with the 3rd one), sl 1, yo, k3tog (slide the next sl stitch and its yo and return them on the left needle turning them around, knit 3 stitches through the back of their loops starting with the 1st one), [k2tog, sl 1, yo] repeat 4 times*; repeat from * to * on the next 3 needles.'
-    #     tree = Row([
-    #         InRowRepeat([
-    #             InRowRepeat([Annotation('k2tog, sl 1, yo')], '4 times'),
-    #             Annotation('k2tog, k3tog (the next sl stitch, yo, and the following stitch - knit all 3 stitches through the front of their loops, starting with the 3rd one), sl 1, yo, k3tog (slide the next sl stitch and its yo and return them on the left needle turning them around, knit 3 stitches through the back of their loops, starting with the 1st one)'),
-    #             InRowRepeat([Annotation('k2tog, sl 1, yo')], '4 times')
-    #         ], 'on the next 3 needles.')
-    #     ], 1)
-    #     parsed_tree = knitparser.parse_row(pattern)
-    #     self.assertEquals(tree, parsed_tree)
+        pattern = 'Round 1: [k2tog, sl 1, yo] repeat 4 times, k2tog, k3tog, [k2tog, sl 1, yo] repeat 4 times, k5.'
+        tree = Row([
+            InRowRepeat([Annotation('k2tog, sl 1, yo')], '4 times'),
+            Annotation('k2tog, k3tog'),
+            InRowRepeat([Annotation('k2tog, sl 1, yo')], '4 times'),
+            Annotation('k5')
+        ], 1)
+        parsed_tree = knitparser.parse_row(pattern)
+        self.assertEquals(tree, parsed_tree)
+
+    def test_simple_nested(self):
+        pattern = 'Row 1: *[k2tog, sl 1, yo] repeat 4 times, k2tog, k3tog; repeat from * to *'
+        tree = Row([
+            InRowRepeat([
+                InRowRepeat([Annotation('k2tog, sl 1, yo')], '4 times'),
+                Annotation('k2tog, k3tog')
+            ])
+        ], 1)
+        parsed_tree = knitparser.parse_row(pattern)
+        self.assertEquals(tree, parsed_tree)
+
+    def test_nested(self):
+        pattern = 'Round 1: *[k2tog, sl 1, yo] repeat 4 times, k2tog, k3tog, sl 1, yo, k3tog, [k2tog, sl 1, yo] repeat 4 times*; repeat from * to * on the next 3 needles.'
+        tree = Row([
+            InRowRepeat([
+                InRowRepeat([Annotation('k2tog, sl 1, yo')], '4 times'),
+                Annotation('k2tog, k3tog, sl 1, yo, k3tog'),
+                InRowRepeat([Annotation('k2tog, sl 1, yo')], '4 times')
+            ], 'on the next 3 needles.')
+        ], 1)
+        parsed_tree = knitparser.parse_row(pattern)
+
+
 
 if __name__ == '__main__':
     unittest.main()

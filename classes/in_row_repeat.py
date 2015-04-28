@@ -20,7 +20,9 @@ class InRowRepeat:
             if not is_valid_row_component(component):
                 raise TypeError('Each component of an InRowRepeat must be an Annotation or InRowRepeat.')
         if until is not None and type(until) != str:
-            raise TypeError('Until must be a string.')
+            raise TypeError('Until must be a non-empty string.')
+        if until is not None and not until.strip():
+            raise ValueError('Until must be a non-empty string.')
 
         self.components = components
         self.until = until
