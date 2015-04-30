@@ -280,9 +280,6 @@ def parse_repeat_every_other(line):
 
     raise Exception('Failed to parse as repeated on every other row: ' + line)
 
-def unroll():
-    pass
-
 def expand_reference():
     pass
 
