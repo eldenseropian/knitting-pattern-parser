@@ -126,5 +126,11 @@ class TestUnrollPatterns(unittest.TestCase):
             unroller.unroll(scarf_intermediate.PATTERN)
         )
 
+    def test_unroll_scarf_advanced(self):
+        self.assertEqual(
+            scarf_advanced.UNROLLED_PATTERN,
+            unroller.unroll(scarf_advanced.PATTERN)
+        )
+
 if __name__ == '__main__':
     unittest.main()

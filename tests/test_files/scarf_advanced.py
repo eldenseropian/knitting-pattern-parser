@@ -169,3 +169,5 @@ PATTERN += [
     Annotation('Kat\'s latest knitting project is her son Felix. Felix loves to pull on the shawls as Kat knits them. Someday, she thinks he may be a knitter too.'),
     Annotation('Pattern & images (c) 2004 Kat Coyle. Contact Kat.')
 ]
+
+UNROLLED_PATTERN = PATTERN
