@@ -37,7 +37,7 @@ class TestPatternFunctions(unittest.TestCase):
 
     def test_str(self):
         expected_str = '<pattern title="Test Pattern">' + self.annotation.__str__() + self.row.__str__() + '</pattern>'
-        self.assertEquals(expected_str, self.pattern.__str__())
+        self.assertEqual(expected_str, self.pattern.__str__())
 
     def test_eq(self):
         self.assertTrue(self.pattern == self.pattern)
@@ -52,7 +52,7 @@ class TestPatternFunctions(unittest.TestCase):
         self.assertFalse(self.pattern == different_pattern)
 
     def test_get_row(self):
-        self.assertEquals(self.row, self.pattern.get_row(1))
+        self.assertEqual(self.row, self.pattern.get_row(1))
         self.assertRaises(ValueError, self.pattern.get_row, 2)
 
         # TODO: figure out multiple rows with the same number and test that

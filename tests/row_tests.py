@@ -43,10 +43,10 @@ class TestRowFunctions(unittest.TestCase):
 
     def test_str(self):
         expected_str = '<row number="1" side="RS">' + self.annotation_1.__str__() + '</row>'
-        self.assertEquals(expected_str, self.test_row_1.__str__())
+        self.assertEqual(expected_str, self.test_row_1.__str__())
 
         expected_str = '<row number="2">' + self.annotation_2.__str__() + self.in_row_repeat.__str__() + '</row>'
-        self.assertEquals(expected_str, self.test_row_2.__str__())
+        self.assertEqual(expected_str, self.test_row_2.__str__())
 
     def test_eq(self):
         self.assertTrue(self.test_row_1 == self.test_row_1)
@@ -59,25 +59,25 @@ class TestRowParsing(unittest.TestCase):
     def test_first_row(self):
         pattern = 'Row 1: Knit 7.'
         row = Row([Annotation('Knit 7.')], 1)
-        self.assertEquals(row, knitparser.parse_row(pattern))
+        self.assertEqual(row, knitparser.parse_row(pattern))
 
         pattern = 'Round 1: Knit 7.'
         row = Row([Annotation('Knit 7.')], 1)
-        self.assertEquals(row, knitparser.parse_row(pattern))
+        self.assertEqual(row, knitparser.parse_row(pattern))
 
     def test_nth_row(self):
         pattern = 'Row 5: P3, K4'
         row = Row([Annotation('P3, K4')], 5)
-        self.assertEquals(row, knitparser.parse_row(pattern))
+        self.assertEqual(row, knitparser.parse_row(pattern))
 
         pattern = 'Round 25: P3, K4'
         row = Row([Annotation('P3, K4')], 25)
-        self.assertEquals(row, knitparser.parse_row(pattern))
+        self.assertEqual(row, knitparser.parse_row(pattern))
 
     def test_row_with_multiple_components(self):
         pattern = 'Row 3: K2, *K1, P1*, rep between * to end.'
         row = Row([Annotation('K2'), InRowRepeat([Annotation('K1, P1')], 'end')], 3)
-        self.assertEquals(row, knitparser.parse_row(pattern))
+        self.assertEqual(row, knitparser.parse_row(pattern))
 
     def test_row_with_side(self):
         pattern = 'Row 5[WS]: Knit.'

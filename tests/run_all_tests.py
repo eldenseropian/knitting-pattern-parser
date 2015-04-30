@@ -15,4 +15,7 @@ os.system('python repeat_tests.py')
 print '\n\nRUNNING PARSER TESTS'
 os.system('python parser_tests.py')
 
+print '\n\nRUNNING UNROLLING TESTS'
+os.system('python unrolling_tests.py')
+
 print '\n'

@@ -33,10 +33,10 @@ class TestInRowRepeatFunctions(unittest.TestCase):
 
     def test_str(self):
         str1 = '<repeat>' + self.annotation1.__str__() + '</repeat>'
-        self.assertEquals(str1, self.in_row_repeat_1.__str__())
+        self.assertEqual(str1, self.in_row_repeat_1.__str__())
 
         str2 = '<repeat until="end of row">' + self.annotation2.__str__() + '</repeat>'
-        self.assertEquals(str2, self.in_row_repeat_2.__str__())
+        self.assertEqual(str2, self.in_row_repeat_2.__str__())
 
     def test_eq(self):
         self.assertTrue(self.in_row_repeat_1 == self.in_row_repeat_1)
@@ -80,7 +80,7 @@ class TestInRowRepeatParsing(unittest.TestCase):
         ], 5)
         parsed_tree = knitparser.parse_row(pattern)
 
-        self.assertEquals(tree, parsed_tree)
+        self.assertEqual(tree, parsed_tree)
 
     def test_bracket_repeat(self):
         pattern = 'Round 1: [k2tog, sl 1, yo] repeat 4 times'
@@ -88,7 +88,7 @@ class TestInRowRepeatParsing(unittest.TestCase):
             InRowRepeat([Annotation('k2tog, sl 1, yo')], '4 times')
         ], 1)
         parsed_tree = knitparser.parse_row(pattern)
-        self.assertEquals(tree, parsed_tree)
+        self.assertEqual(tree, parsed_tree)
 
         pattern = 'Round 2: [k2tog, sl 1, yo] repeat once, k2tog, k3tog'
         tree = Row([
@@ -96,7 +96,7 @@ class TestInRowRepeatParsing(unittest.TestCase):
             Annotation('k2tog, k3tog')
         ], 2)
         parsed_tree = knitparser.parse_row(pattern)
-        self.assertEquals(tree, parsed_tree)
+        self.assertEqual(tree, parsed_tree)
 
     def test_no_further_instructions(self):
         pattern = 'Row 3: *K1, P1*, rep between * to end.'
@@ -104,7 +104,7 @@ class TestInRowRepeatParsing(unittest.TestCase):
             InRowRepeat([Annotation('K1, P1')], 'end')
         ], 3)
         parsed_tree = knitparser.parse_row(pattern)
-        self.assertEquals(tree, parsed_tree)
+        self.assertEqual(tree, parsed_tree)
 
     def test_multiple_in_row(self):
         pattern = 'Round 1: [k2tog, sl 1, yo] repeat 4 times, k2tog, k3tog, [k2tog, sl 1, yo] repeat 4 times, k5.'
@@ -115,7 +115,7 @@ class TestInRowRepeatParsing(unittest.TestCase):
             Annotation('k5')
         ], 1)
         parsed_tree = knitparser.parse_row(pattern)
-        self.assertEquals(tree, parsed_tree)
+        self.assertEqual(tree, parsed_tree)
 
     def test_simple_nested(self):
         pattern = 'Row 1: *[k2tog, sl 1, yo] repeat 4 times, k2tog, k3tog; repeat from * to *'
@@ -126,7 +126,7 @@ class TestInRowRepeatParsing(unittest.TestCase):
             ])
         ], 1)
         parsed_tree = knitparser.parse_row(pattern)
-        self.assertEquals(tree, parsed_tree)
+        self.assertEqual(tree, parsed_tree)
 
     def test_nested(self):
         pattern = 'Round 1: *[k2tog, sl 1, yo] repeat 4 times, k2tog, k3tog, sl 1, yo, k3tog, [k2tog, sl 1, yo] repeat 4 times*; repeat from * to * on the next 3 needles.'
@@ -138,8 +138,6 @@ class TestInRowRepeatParsing(unittest.TestCase):
             ], 'on the next 3 needles.')
         ], 1)
         parsed_tree = knitparser.parse_row(pattern)
-
-
 
 if __name__ == '__main__':
     unittest.main()
