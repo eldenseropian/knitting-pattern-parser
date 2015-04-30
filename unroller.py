@@ -46,7 +46,6 @@ def unroll_repeat(repeat):
                 new_row = copy.copy(component)
                 new_row.number = row_number
                 if row_number != repeat.start:
-                    # TODO: figure out side
                     if last_side == 'WS':
                         new_row.side = 'RS'
                         last_side = 'RS'
