@@ -80,6 +80,13 @@ class TestUnrollRepeats(unittest.TestCase):
         ], 1)
         self.assertEqual([repeat], unroller.unroll_repeat(repeat))
 
+    def test_indefinite_repeat_with_str_times(self):
+        repeat = Repeat([
+            Row([Annotation('K')], 1),
+            Row([Annotation('P')], 2),
+        ], 1, 'WS')
+        self.assertEqual([repeat], unroller.unroll_repeat(repeat))
+
 class TestUnrollInRowRepeats(unittest.TestCase):
     pass
 

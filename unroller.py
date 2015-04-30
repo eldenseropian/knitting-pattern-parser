@@ -31,7 +31,7 @@ def unroll_repeat(repeat):
     if repeat.__class__ != Repeat:
         raise TypeError('repeat must be a Repeat.')
 
-    if not repeat.times:
+    if not repeat.times or type(repeat.times) == str:
         return [repeat]
 
     unrolled_components = []
