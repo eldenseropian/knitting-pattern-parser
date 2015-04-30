@@ -36,7 +36,7 @@ class TestParser(unittest.TestCase):
 
     def test_advanced_pattern(self):
         pattern_tree = scarf_advanced.PATTERN
-        
+
         with open('test_files/scarf_advanced.txt') as pattern_file:
             pattern = pattern_file.read()
             parsed_pattern = knitparser.parse(pattern)

@@ -15,7 +15,14 @@ def unroll(pattern):
 
     Returns an unrolled version of the pattern. Does not mutate the pattern.
     """
-    raise NotImplementedError()
+
+    unrolled_pattern = Pattern(pattern.title)
+    for component in pattern.components:
+        if component.__class__ == Repeat:
+            unrolled_pattern += unroll_repeat(component)
+        else:
+            unrolled_pattern += component
+    return unrolled_pattern
 
 def unroll_repeat(repeat):
     """Unroll a Repeat.
@@ -65,7 +72,7 @@ def unroll_repeat(repeat):
                     row_number += 1
                     unrolled_components.append(new_reference)
                 else:
-                    unrolled_components.append(reference)
+                    unrolled_components.append(component)
             else:
                 raise RuntimeError('Repeats may only contain Annotations, References, and Rows')
 

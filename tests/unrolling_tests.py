@@ -9,7 +9,13 @@ from pattern import *
 sys.path.append(os.path.join('..', ''))
 import unroller
 
+sys.path.append(os.path.join('.', 'test_files'))
+import scarf_beginner
+import scarf_intermediate
+import scarf_advanced
+
 class TestUnrollRepeats(unittest.TestCase):
+    """Test unrolling repeats outside the context of a pattern."""
 
     def test_repeat_first_row(self):
         repeat = Repeat([Row([Annotation('Knit 7.')], 1)], 1, 4)
@@ -40,7 +46,23 @@ class TestUnrollRepeats(unittest.TestCase):
 
         expected_unrolled_pattern = [
             Reference(Row([Annotation('Purl.')], 1), 3),
-            Reference(Row([Annotation('Purl.')], 1), 4)
+            Reference(Row([Annotation('Purl.')], 1), 4),
+        ]
+
+        actual_unrolled_pattern = unroller.unroll_repeat(repeat)
+        self.assertEqual(expected_unrolled_pattern, actual_unrolled_pattern)
+
+    def test_repeat_with_unnumbered_references(self):
+        repeat = Repeat([
+            Reference(Row([Annotation('Knit.')], 1)),
+            Reference(Row([Annotation('Purl.')], 2))
+        ], 3, 2)
+
+        expected_unrolled_pattern = [
+            Reference(Row([Annotation('Knit.')], 1), 3),
+            Reference(Row([Annotation('Purl.')], 2), 4),
+            Reference(Row([Annotation('Knit.')], 1), 5),
+            Reference(Row([Annotation('Purl.')], 2), 6)
         ]
 
         actual_unrolled_pattern = unroller.unroll_repeat(repeat)
@@ -52,9 +74,6 @@ class TestUnrollRepeats(unittest.TestCase):
             Row([Annotation('P5')], 2),
             Row([Annotation('K2, P3')], 3)
         ], 1, 3)
-
-        # TODO: calculate side for all rows
-        # for now, don't use side unless explicitly stated
 
         expected_unrolled_pattern = [
             Row([Annotation('K5')], 1, 'WS'),
@@ -92,8 +111,20 @@ class TestUnrollInRowRepeats(unittest.TestCase):
 
     #TODO: version 2.0
 
+class TestUnrollPatterns(unittest.TestCase):
+    """Test unrolling an entire pattern."""
 
-#TODO: unroll parsed patterns
+    def test_unroll_scarf_beginner(self):
+        self.assertEqual(
+            scarf_beginner.UNROLLED_PATTERN,
+            unroller.unroll(scarf_beginner.PATTERN)
+        )
+
+    def test_unroll_scarf_intermediate(self):
+        self.assertEqual(
+            scarf_intermediate.UNROLLED_PATTERN,
+            unroller.unroll(scarf_intermediate.PATTERN)
+        )
 
 if __name__ == '__main__':
     unittest.main()

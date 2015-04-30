@@ -121,9 +121,12 @@ class Pattern:
 
         self.components.append(component)
 
-        if component.__class__ in [Row, InRowRepeat, Reference]:
+        if component.__class__ in [Row, Reference]:
             self._add_row(component)
-            self.next_row_number = component.number + 1
+            if component.number:
+                self.next_row_number = component.number + 1
+            else:
+                self.next_row_number += 1
 
         elif is_and_all_repeat(component):
             if 'even' in self._rows:
