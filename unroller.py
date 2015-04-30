@@ -1,8 +1,84 @@
+import copy
+
+from os.path import join
+from sys import path
+
+path.append(join('.', 'classes'))
+
+from pattern import *
+
 def unroll(pattern):
-    return pattern
+    """Unroll every loop in a pattern.
+
+    Keyword arguments:
+    pattern -- the pattern to unroll
+
+    Returns an unrolled version of the pattern. Does not mutate the pattern.
+    """
+    raise NotImplementedError()
 
 def unroll_repeat(repeat):
-    return []
+    """Unroll a Repeat.
+
+    Keyword arguments:
+    repeat -- the repeat to unroll
+
+    Indefinite repeats do not unroll. Returns a list containing the indefinite
+    repeat.
+
+    Returns a list of the components comprising the unrolled repeat.
+    """
+    if repeat.__class__ != Repeat:
+        raise TypeError('repeat must be a Repeat.')
+
+    if not repeat.times:
+        return [repeat]
+
+    unrolled_components = []
+    row_number = repeat.start
+    last_side = None
+    for i in range(repeat.times):
+        # TODO: update row #s
+        for component in repeat.components:
+            if component.__class__ == Annotation:
+                unrolled_components.append(component)
+            elif component.__class__ == Row:
+                new_row = copy.copy(component)
+                new_row.number = row_number
+                if row_number != repeat.start:
+                    # TODO: figure out side
+                    if last_side == 'WS':
+                        new_row.side = 'RS'
+                        last_side = 'RS'
+                    elif last_side == 'RS':
+                        new_row.side = 'WS'
+                        last_side = 'WS'
+                    else:
+                        new_row.side = None
+                elif component.side:
+                    last_side = component.side
+                row_number += 1
+                unrolled_components.append(new_row)
+            elif component.__class__ == Reference:
+                if component.number is not None:
+                    new_reference = copy.copy(component)
+                    new_reference.number = row_number
+                    row_number += 1
+                    unrolled_components.append(new_reference)
+                else:
+                    unrolled_components.append(reference)
+            else:
+                raise RuntimeError('Repeats may only contain Annotations, References, and Rows')
+
+    return unrolled_components
 
 def unroll_in_row_repeat(repeat):
-    return []
+    """Unroll an InRowRepeat.
+
+    Keyword arguments:
+    repeat -- the repeat to unroll
+
+    Returns a list of the components comprising the unrolled repeat.
+    """
+
+    raise NotImplementedError('This is coming in version 2.0')

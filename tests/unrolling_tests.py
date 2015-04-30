@@ -39,8 +39,8 @@ class TestUnrollRepeats(unittest.TestCase):
         repeat = Repeat([Reference(Row([Annotation('Purl.')], 1), 2)], 3, 2)
 
         expected_unrolled_pattern = [
-            Row([Annotation('Purl.')], 3),
-            Row([Annotation('Purl.')], 4)
+            Reference(Row([Annotation('Purl.')], 1), 3),
+            Reference(Row([Annotation('Purl.')], 1), 4)
         ]
 
         actual_unrolled_pattern = unroller.unroll_repeat(repeat)
@@ -58,18 +58,27 @@ class TestUnrollRepeats(unittest.TestCase):
 
         expected_unrolled_pattern = [
             Row([Annotation('K5')], 1, 'WS'),
-            Row([Annotation('P5')], 2),
-            Row([Annotation('K2, P3')], 3),
-            Row([Annotation('K5')], 4),
-            Row([Annotation('P5')], 5),
-            Row([Annotation('K2, P3')], 6),
-            Row([Annotation('K5')], 7),
-            Row([Annotation('P5')], 8),
-            Row([Annotation('K2, P3')], 9)
+            Row([Annotation('P5')], 2, 'RS'),
+            Row([Annotation('K2, P3')], 3, 'WS'),
+            Row([Annotation('K5')], 4, 'RS'),
+            Row([Annotation('P5')], 5, 'WS'),
+            Row([Annotation('K2, P3')], 6, 'RS'),
+            Row([Annotation('K5')], 7, 'WS'),
+            Row([Annotation('P5')], 8, 'RS'),
+            Row([Annotation('K2, P3')], 9, 'WS')
         ]
 
         actual_unrolled_pattern = unroller.unroll_repeat(repeat)
         self.assertEqual(expected_unrolled_pattern, actual_unrolled_pattern)
+
+    def test_indefinite_repeat(self):
+        # Unrolling an indefinite repeat shouldn't do anything
+
+        repeat = Repeat([
+            Row([Annotation('K')], 1),
+            Row([Annotation('P')], 2),
+        ], 1)
+        self.assertEqual([repeat], unroller.unroll_repeat(repeat))
 
 class TestUnrollInRowRepeats(unittest.TestCase):
     pass
