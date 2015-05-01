@@ -42,7 +42,7 @@ class TestUnrollRepeats(unittest.TestCase):
         self.assertEqual(expected_unrolled_pattern, actual_unrolled_pattern)
 
     def test_repeat_with_references(self):
-        repeat = Repeat([Reference(Row([Annotation('Purl.')], 1), 2)], 3, 2)
+        repeat = Repeat([Reference(Row([Annotation('Purl.')], 1), 3)], 3, 2)
 
         expected_unrolled_pattern = [
             Reference(Row([Annotation('Purl.')], 1), 3),

@@ -66,13 +66,10 @@ def unroll_repeat(repeat):
                 row_number += 1
                 unrolled_components.append(new_row)
             elif component.__class__ == Reference:
-                if component.number is not None:
-                    new_reference = copy.copy(component)
-                    new_reference.number = row_number
-                    row_number += 1
-                    unrolled_components.append(new_reference)
-                else:
-                    unrolled_components.append(component)
+                new_reference = copy.deepcopy(component)
+                new_reference.number = row_number
+                row_number += 1
+                unrolled_components.append(new_reference)
             else:
                 raise RuntimeError('Repeats may only contain Annotations, References, and Rows')
 

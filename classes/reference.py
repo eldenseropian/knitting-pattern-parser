@@ -39,9 +39,9 @@ class Reference:
         return row_str
 
     def __eq__(self, other):
-        """Return whether two references point to the same object."""
+        """Return whether two references point to the same object and have the same number."""
 
-        return self.reference == other.reference
+        return self.reference == other.reference and self.number == other.number
 
     def __ne__(self, other):
         return not self.__eq__(other)

@@ -2,6 +2,9 @@ from os.path import join
 import re
 from sys import path, argv
 
+import reference_expander
+import unroller
+
 path.append(join('.', 'classes'))
 from annotation import *
 from pattern import *
@@ -241,7 +244,11 @@ def parse_repeat(line, pattern_tree):
         parsed_rows = []
         for i in range(ref_start, ref_end + 1):
             row_number = pattern_tree.next_row_number + i - ref_start
-            parsed_rows.append(Reference(pattern_tree.get_row(i), row_number))
+            if len(nums_before) > 1:
+                parsed_rows.append(Reference(pattern_tree.get_row(i), nums_before[0] + i - ref_start))
+            else:
+                parsed_rows.append(Reference(pattern_tree.get_row(i), row_number))
+
         return parsed_rows
 
     repeat_start = nums_before[0]
@@ -280,8 +287,10 @@ def parse_repeat_every_other(line):
 
     raise Exception('Failed to parse as repeated on every other row: ' + line)
 
-def expand_reference():
-    pass
+def expand_and_unroll(pattern):
+    """Expand every reference and unroll every loop."""
+    # Loop unrolling must happen first to give references the right numbers.
+    return reference_expander.expand(unroller.unroll(pattern))
 
 def _find_all_nums(line):
     """Return a list of all integers in a string.

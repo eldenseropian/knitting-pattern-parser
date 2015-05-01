@@ -1,3 +1,5 @@
+import copy
+
 from pattern import *
 
 row5 = Row([Annotation('With A'), InRowRepeat([Annotation('k8, yo, sl next st purlwise, k1')], 'twice more'), Annotation('k7')], 5)
@@ -50,8 +52,12 @@ sections = [
         row6,
         row7,
         row8,
+    ],
+    [
         Reference(row7, 9),
-        Reference(row8, 10),
+        Reference(row8, 10)
+    ],
+    [
         row11,
         row12,
         Row([Annotation('With A, k3'), InRowRepeat([Annotation('yo, sl next st purlwise, k9')], 'twice more'), Annotation('yo, sl next st purlwise, k3')], 13),
@@ -67,10 +73,12 @@ sections = [
         Reference(row6, 26)
     ],
     Repeat([Reference(row7), Reference(row8)], 27, 4),
+    Annotation('From here, rep Rows 11 - 34 for Pat St until piece measures approximately 70" from beg, end on Row 16 of Pat St. Rep Rows 15 and 16 once more.'),
     [
-        Annotation('From here, rep Rows 11 - 34 for Pat St until piece measures approximately 70" from beg, end on Row 16 of Pat St. Rep Rows 15 and 16 once more.'),
-        Reference(row11, 1),
-        Reference(row12, 2),
+        Reference(row11, 35),
+        Reference(row12, 36),
+    ],
+    [
         Annotation('Following Row: With A, knit. Using A, bind off.'),
         Annotation('Finishing'),
         Annotation('Weave in all ends.'),
@@ -83,6 +91,8 @@ for section in sections:
 
 UNROLLED_PATTERN = Pattern('CHAKNA')
 UNROLLED_PATTERN += sections[0]
+UNROLLED_PATTERN += sections[1]
+UNROLLED_PATTERN += sections[2]
 UNROLLED_PATTERN += [
     Reference(row15, 17),
     Reference(row16, 18),
@@ -91,7 +101,7 @@ UNROLLED_PATTERN += [
     Reference(row15, 21),
     Reference(row16, 22)
 ]
-UNROLLED_PATTERN += sections[2]
+UNROLLED_PATTERN += sections[4]
 UNROLLED_PATTERN += [
     Reference(row7, 27),
     Reference(row8, 28),
@@ -102,4 +112,49 @@ UNROLLED_PATTERN += [
     Reference(row7, 33),
     Reference(row8, 34)
 ]
-UNROLLED_PATTERN += sections[4]
+UNROLLED_PATTERN += sections[6]
+UNROLLED_PATTERN += sections[7]
+UNROLLED_PATTERN += sections[8]
+
+def deref(ref):
+    derefed = copy.copy(ref.reference)
+    derefed.number = ref.number
+    return derefed
+
+EXPANDED_PATTERN = Pattern('CHAKNA')
+EXPANDED_PATTERN += sections[0]
+EXPANDED_PATTERN += [deref(ref) for ref in sections[1]]
+EXPANDED_PATTERN += sections[2]
+EXPANDED_PATTERN += sections[3]
+EXPANDED_PATTERN += [deref(ref) for ref in sections[4]]
+EXPANDED_PATTERN += sections[5]
+EXPANDED_PATTERN += sections[6]
+EXPANDED_PATTERN += [deref(ref) for ref in sections[7]]
+EXPANDED_PATTERN += sections[8]
+
+EXPANDED_AND_UNROLLED_PATTERN = Pattern('CHAKNA')
+EXPANDED_AND_UNROLLED_PATTERN += sections[0]
+EXPANDED_AND_UNROLLED_PATTERN += [deref(ref) for ref in sections[1]]
+EXPANDED_AND_UNROLLED_PATTERN += sections[2]
+EXPANDED_AND_UNROLLED_PATTERN += [
+    deref(Reference(row15, 17)),
+    deref(Reference(row16, 18)),
+    deref(Reference(row15, 19)),
+    deref(Reference(row16, 20)),
+    deref(Reference(row15, 21)),
+    deref(Reference(row16, 22))
+]
+EXPANDED_AND_UNROLLED_PATTERN += [deref(ref) for ref in sections[4]]
+EXPANDED_AND_UNROLLED_PATTERN += [
+    deref(Reference(row7, 27)),
+    deref(Reference(row8, 28)),
+    deref(Reference(row7, 29)),
+    deref(Reference(row8, 30)),
+    deref(Reference(row7, 31)),
+    deref(Reference(row8, 32)),
+    deref(Reference(row7, 33)),
+    deref(Reference(row8, 34))
+]
+EXPANDED_AND_UNROLLED_PATTERN += sections[6]
+EXPANDED_AND_UNROLLED_PATTERN += [deref(ref) for ref in sections[7]]
+EXPANDED_AND_UNROLLED_PATTERN += sections[8]

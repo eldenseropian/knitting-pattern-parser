@@ -42,5 +42,23 @@ class TestParser(unittest.TestCase):
             parsed_pattern = knitparser.parse(pattern)
             self.assertEqual(pattern_tree, parsed_pattern)
 
+class TestExpandAndUnroll(unittest.TestCase):
+    """Test expanding and unrolling entire real patterns."""
+
+    def test_beginner_pattern(self):
+        pattern_tree = scarf_beginner.PATTERN
+        expanded_and_unrolled = scarf_beginner.EXPANDED_AND_UNROLLED_PATTERN
+        self.assertEqual(expanded_and_unrolled, knitparser.expand_and_unroll(pattern_tree))
+
+    def test_intermediate_pattern(self):
+        pattern_tree = scarf_intermediate.PATTERN
+        expanded_and_unrolled = scarf_intermediate.EXPANDED_AND_UNROLLED_PATTERN
+        self.assertEqual(expanded_and_unrolled, knitparser.expand_and_unroll(pattern_tree))
+
+    def test_advanced_pattern(self):
+        pattern_tree = scarf_advanced.PATTERN
+        expanded_and_unrolled = scarf_advanced.EXPANDED_AND_UNROLLED_PATTERN
+        self.assertEqual(expanded_and_unrolled, knitparser.expand_and_unroll(pattern_tree))
+
 if __name__ == '__main__':
     unittest.main()

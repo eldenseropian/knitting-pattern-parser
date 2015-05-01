@@ -18,4 +18,7 @@ os.system('python parser_tests.py')
 print '\n\nRUNNING UNROLLING TESTS'
 os.system('python unrolling_tests.py')
 
+print '\n\nRUNNING EXPANDING TESTS'
+os.system('python expanding_tests.py')
+
 print '\n'

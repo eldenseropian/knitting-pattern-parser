@@ -83,14 +83,21 @@ class TestRepeatParsing(unittest.TestCase):
     def test_repeat_one_time(self):
         pattern = 'Rows 9 and 10: Rep Rows 7 and 8 once more.'
         parsed_tree = knitparser.parse_repeat(pattern, self.pattern_tree)
+        self.repeat_one_time_tree[0].number = 9
+        self.repeat_one_time_tree[1].number = 10
         self.assertEqual(self.repeat_one_time_tree, parsed_tree)
 
         pattern = 'Rows 23 and 24: Rep Rows 7 and 8.'
         parsed_tree = knitparser.parse_repeat(pattern, self.pattern_tree)
+        self.repeat_one_time_tree[0].number = 23
+        self.repeat_one_time_tree[1].number = 24
         self.assertEqual(self.repeat_one_time_tree, parsed_tree)
 
         pattern = 'Next 2 Rows: Rep Rows 7 and 8.'
+        self.pattern_tree.next_row_number = 9
         parsed_tree = knitparser.parse_repeat(pattern, self.pattern_tree)
+        self.repeat_one_time_tree[0].number = 9
+        self.repeat_one_time_tree[1].number = 10
         self.assertEqual(self.repeat_one_time_tree, parsed_tree)
 
     def test_multiple_repeat(self):
